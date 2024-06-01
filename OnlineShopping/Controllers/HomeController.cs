@@ -6,10 +6,11 @@ using System.Web.Mvc;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using OnlineShopping.Filters;
 
 namespace OnlineShopping.Controllers
 {
-    
+    [AdminAuthorization]
     public class HomeController : Controller
     {
         string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\admin\source\repos\OnlineShopping\OnlineShopping\App_Data\OnlineShopping.mdf;Integrated Security=True";
