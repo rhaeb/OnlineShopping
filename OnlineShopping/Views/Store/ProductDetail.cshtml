@@ -1,0 +1,12 @@
+﻿@{
+    ViewBag.Title = "ProductDetail";
+}
+
+<h2>@ViewBag.NAME</h2>
+<div>
+    <img src="@Url.Content("~/Home/Image?filename=" + HttpUtility.UrlEncode((string)ViewBag.IMAGE))" alt="Product Image" style="width: 100%; border-radius: 10px;">
+    <p><strong>Price:</strong> P @ViewBag.PRICE</p>
+    <p><strong>Category:</strong> @ViewBag.CATEGORY</p>
+    <p>@ViewBag.DESCRIPTION</p>
+    <p><strong>Quantity:</strong> @ViewBag.QUANTITY</p>
+</div>

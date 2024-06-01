@@ -1,0 +1,41 @@
+﻿
+@{
+    ViewBag.Title = "EditCustomer";
+}
+
+<h2>Edit Customer</h2>
+<form id="customerEditForm" method="post" enctype="multipart/form-data">
+    <h3>ID: </h3><h4 id="cusID">@ViewBag.cusID</h4>
+    First Name<br />
+    <input type="text" id="fname" value="@ViewBag.FirstName" />
+    <br />
+    Last Name<br />
+    <input type="text" id="lname" value="@ViewBag.LastName" />
+    <br />
+    Email<br />
+    <input type="text" id="email" value="@ViewBag.Email" />
+    <br />
+    Password<br />
+    <input type="text" id="pass" value="@ViewBag.Password" />
+    <br />
+    Username<br />
+    <input type="text" id="uname" value="@ViewBag.Username" />
+    <br />
+    Date Of Birth<br />
+    <input type="date" id="dob" />
+    <br />
+    Gender<br />
+    <select id="gender" required class="form-control">
+        <option value="" selected disabled>Select Gender</option>
+        <option value="F" @(ViewBag.Gender == "F" ? "selected" : "")>Female</option>
+        <option value="M" @(ViewBag.Gender == "M" ? "selected" : "")>Male</option>
+        <option value="O" @(ViewBag.Gender == "O" ? "selected" : "")>Other</option>
+    </select>
+</form>
+<input type="button" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
+<input type="button" id="btnUpdate" name="btnUpdate" value="Update" />&nbsp;
+<input type="button" id="btnDelete" name="btnDelete" value="Delete" />&nbsp;
+
+
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
+<script src="~/Scripts/MyScripts/UpdateCustomer.js"></script>

@@ -1,0 +1,25 @@
+﻿
+@{
+    ViewBag.Title = "ProductView";
+}
+
+<h2>ProductView</h2>
+
+
+<html>
+<body>
+    <form method="get">
+        Input Product ID
+        <input type="text" id="prodId" name="prodId" value="" /><br />
+        @{
+            if (ViewData["pname"] != null)
+            {
+                <img src="../Home/Image?filename=@HttpUtility.UrlEncode(ViewData["pname"].ToString())" width="50%">
+            }
+            <p>@ViewData["name"]</p>
+        }
+        <input type="submit" id="display" name="display" value="Search Record" />
+    </form>
+</body>
+</html>
+

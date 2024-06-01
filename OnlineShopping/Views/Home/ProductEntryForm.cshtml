@@ -1,0 +1,43 @@
+﻿
+@{
+    ViewBag.Title = "ProductEntryForm";
+}
+
+<html>
+<head>
+
+</head>
+<body>
+    <form id="productForm" method="post" action="../Home/ProductEntry" enctype="multipart/form-data">
+        <div>
+            Product Name <br />
+            <input type="text" id="pName" name="pName" required class="form-control">
+            <br />
+            Price <br />
+            <input type="number" id="price" name="price" step="0.01" min="0" required class="form-control">
+            <br />
+            Description <br />
+            <textarea id="description" name="description" rows="4" class="form-control"></textarea>
+            <br />
+            Quantity <br />
+            <input type="number" id="quantity" name="quantity" min="0" required class="form-control">
+            <br />
+            Category <br />
+            <select id="category" name="category" required class="form-control">
+                <option value="" selected disabled>Select category</option>
+                <option value="FashionBeauty">Fashion & Beauty</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Furniture">Furniture</option>
+                <option value="Entertainment">Entertainment</option>
+            </select>
+            <br />
+            <input type="file" name="img" accept="image/png,image/jpeg,image/jpg,image/gif,image/bmp" />
+            <br /><br />
+            <input type="submit" value="Submit" class="btn btn-primary" id="btnclick" name="btnclick">
+            <br />
+        </div>
+    </form>
+</body>
+</html>
+
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>

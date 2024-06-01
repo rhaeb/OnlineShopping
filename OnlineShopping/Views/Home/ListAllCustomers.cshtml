@@ -1,0 +1,105 @@
+﻿@using System.Web;
+@using System.Web.Mvc;
+@using System.Data;
+@using System.Data.SqlClient;
+@using System.IO;
+@using System.Drawing;
+@using System.Drawing.Imaging;
+@using System.Web.Services;
+@{
+    ViewBag.Title = "ListAllCustomers";
+}
+
+<h2>List All Customers</h2>
+@{
+    string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\admin\source\repos\OnlineShopping\OnlineShopping\App_Data\OnlineShopping.mdf;Integrated Security=True";
+    using (var db = new SqlConnection(connStr))
+    {
+        db.Open();
+        using (var cmd = db.CreateCommand())
+        {
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = "SELECT * FROM CUSTOMER";
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    <table border="1" id="datatable">
+                        <thead>
+                            <tr class="success">
+                                <th width="15%">
+                                    CUSTOMER ID
+                                </th>
+                                <th width="15%">
+                                    LAST NAME
+                                </th>
+                                <th width="15%">
+                                    FIRST NAME
+                                </th>
+                                <th width="15%">
+                                    EMAIL
+                                </th>
+                                <th width="15%">
+                                    PASSWORD
+                                </th>
+                                <th width="15%">
+                                    USERNAME
+                                </th>
+                                <th width="15%">
+                                    DATE OF BIRTH
+                                </th>
+                                <th width="15%">
+                                    GENDER
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @while (reader.Read())
+                            {
+                                <tr class="items">
+                                    <td class="prodId">
+                                        @reader["ID"]
+                                    </td>
+                                    <td class="lname">
+                                        @reader["LNAME"]
+                                    </td>
+                                    <td class="fname">
+                                        @reader["FNAME"]
+                                    </td>
+                                    <td class="email">
+                                        @reader["EMAIL"]
+                                    </td>
+                                    <td class="pass">
+                                        @reader["PASSWORD"]
+                                    </td>
+                                    <td class="uname">
+                                        @reader["USERNAME"]
+                                    </td>
+                                    <td class="dob">
+                                        @reader["DATE_OF_BIRTH"]
+                                    </td>
+                                    <td class="gender">
+                                        @reader["GENDER"]
+                                    </td>
+                                    <td class="actions">
+                                        @Html.ActionLink("Edit", "EditCustomer", new { id = @reader["ID"] }, new { @class = "btn btn-primary" })
+                                        @Html.ActionLink("Delete", "DeleteCustomer", new { id = @reader["ID"] }, new { @class = "btn btn-danger", onclick = "return confirm('Are you sure you want to delete this customer?');" })
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>There are no customers in the list</p>
+                }
+            }
+        }
+    }
+}
+
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
+
+

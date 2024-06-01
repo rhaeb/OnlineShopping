@@ -1,0 +1,64 @@
+﻿
+@{
+    ViewBag.Title = "SignUp";
+}
+
+<h2>Sign Up</h2>
+
+
+<div class="div-container">
+
+    <div>
+        <div class="row">
+            <div class="col-md-5">
+                Last Name <br />
+                <input type="text" id="lname" required class="form-control">
+            </div>
+            <div class="col-md-5">
+                First Name <br />
+                <input type="text" id="fname" required class="form-control">
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-5">
+                Email Address <br />
+                <input type="text" id="email" required class="form-control">
+            </div>
+            <div class="col-md-5">
+                Password <br />
+                <input type="password" id="pass" required class="form-control">
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-5">
+                Username <br />
+                <input type="text" id="username" required class="form-control">
+            </div>
+            <div class="col-md-5">
+                Date Of Birth<br />
+                <input type="date" id="dob" required class="form-control">
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-5">
+                Gender <br />
+                <select id="gender" required class="form-control">
+                    <option value="" selected disabled>Select Gender</option>
+                    <option value="F">Female</option>
+                    <option value="M">Male</option>
+                    <option value="O">Other</option>
+                </select>
+            </div>
+        </div>
+        <br />
+        <br /><br />
+        <input type="button" value="Submit" class="btn btn-primary" id="btnclick">
+        <br />
+    </div>
+</div>
+
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
+<script src="~/Scripts/Account/SignUp.js"></script>

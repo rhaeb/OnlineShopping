@@ -1,0 +1,34 @@
+﻿
+@{
+    ViewBag.Title = "UpdateDeleteProduct";
+}
+
+<h2>UpdateDeleteProduct</h2>
+<html>
+<head>
+
+</head>
+<body>
+    <form id="productForm" method="post" enctype="multipart/form-data">
+        Input Product ID <br />
+        <input tpye="text" id="txtidno" name="txtidno" required /> &nbsp;
+        <input type="submit" id="btnSearch" name="btnSearch" value="Search" /><br />
+        Name <br />
+        <input type="text" id="txtname" /><br />
+        Description <br />
+        <input type="text" id="txtdesc" /><br />
+        Price <br />
+        <input type="number" id="txtprice" /><br />
+        Quantity <br />
+        <input type="number" id="txtqty" /><br />
+        Image <br />
+        <input type="file" name="img" accept="image/png,image/jpeg,image/jpg,image/gif,image/bmp" /><br />
+        <div id="imageContainer"></div>
+    </form>
+    <input type="submit" id="btnEdit" name="btnEdit" value="Edit" />&nbsp;
+    <input type="submit" id="btnUpdate" name="btnUpdate" value="Update" />&nbsp;
+    <input type="submit" id="btnDel" name="btnDel" value="Delete" />&nbsp;
+</body>
+</html>
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
+<script src="~/Scripts/MyScripts/EditProduct.js"></script>
