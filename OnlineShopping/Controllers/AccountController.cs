@@ -34,6 +34,7 @@ namespace OnlineShopping.Controllers
             if (Users.ContainsKey(usernameOrEmail) && Users[usernameOrEmail] == password)
             {
                 Session["Username"] = usernameOrEmail;
+                Session["IsAuthenticated"] = true;
                 Session["IsAdmin"] = (usernameOrEmail == "admin");
                 return RedirectToAction("Index", "Home");
             }
@@ -41,6 +42,7 @@ namespace OnlineShopping.Controllers
             if (IsValidCustomer(usernameOrEmail, password))
             {
                 Session["Username"] = usernameOrEmail;
+                Session["IsAuthenticated"] = true;
                 Session["IsAdmin"] = false;
                 return RedirectToAction("Index", "Store");
             }

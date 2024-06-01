@@ -25,6 +25,28 @@ namespace OnlineShopping.Controllers
             return View();
         }
 
+        [HttpGet]
+        public FileResult Image(string filename)
+        {
+            var folder = "";
+            var filepath = "";
+            try
+            {
+                folder = "c:\\Uploads";
+                filepath = Path.Combine(folder, filename);
+                if (System.IO.File.Exists(filepath))
+                {
+
+                }
+            }
+            catch (Exception)
+            {
+                throw new FileNotFoundException("File not found");
+            }
+            var mime = System.Web.MimeMapping.GetMimeMapping(Path.GetFileName(filename));
+            Response.Headers.Add("content-disposition", "inline");
+            return new FilePathResult(filepath, mime);
+        }
         public ActionResult ProductDetail(int id)
         {
             using (SqlConnection db = new SqlConnection(connStr))

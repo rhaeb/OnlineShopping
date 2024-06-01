@@ -29,7 +29,7 @@
                         {
                         <div class="col-md-3 mb-4">
                             <div class="card">
-                                <img class="card-img" src="../Home/Image?filename=@HttpUtility.UrlEncode(reader["IMAGE"] + "")" alt="Product Image" onclick="gotoDetail(@reader["ID"])">
+                                <img class="card-img" src="../Store/Image?filename=@HttpUtility.UrlEncode(reader["IMAGE"] + "")" alt="Product Image" onclick="gotoDetail(@reader["ID"])">
                                 <div class="card-body">
                                     <h5 class="card-title">@reader["NAME"]</h5>
                                     <p class="card-text"><strong>Price:</strong> P @reader["PRICE"]</p>
@@ -37,7 +37,7 @@
                                     <p class="card-text">@reader["DESCRIPTION"]</p>
                                     <p class="card-text"><strong>In Stock:</strong> @reader["QUANTITY"]</p>
                                     <div class="form-group">
-                                        @if (User.Identity.IsAuthenticated)
+                                        @if (Session["IsAuthenticated"] != null && (bool)Session["IsAuthenticated"])
                                         {
                                             <input type="number" class="form-control txtqty" name="txtqty" min="0" step="1" max="@reader["QUANTITY"]" placeholder="Quantity" />
                                             <button type="button" class="btnCart">Add to Cart</button> }
@@ -58,16 +58,46 @@
 }
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
-<script src="~/Scripts/Store/Store.js"></script>
 <script>
+    function gotoDetail(productId) {
+        window.location.href = '/Store/ProductDetail?id=' + productId;
+    }
     $(document).ready(function () {
         $(".btnCart").each(function () {
             $(this).click(function () {
                 var id = $(this).closest('.card').find('.card-title').text();
-                alert("Added to cart: " + id);
+                var quantity = parseInt($(this).closest('.card').find('.txtqty').val());
+                var maxQuantity = parseInt($(this).closest('.card').find('.card-text:last').text().split(': ')[1]);
+
+                if (quantity > 0 && quantity <= maxQuantity) {
+                    addToCart(id, quantity);
+                } else {
+                    alert("Invalid input");
+                }
             });
         });
     });
+    function addToCart(productId, quantity) {
+        $.ajax({
+            url: '/Store/AddToCart',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                productId: productId,
+                quantity: quantity
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert("Product added to cart successfully.");
+                } else {
+                    alert("Failed to add product to cart.");
+                }
+            },
+            error: function () {
+                alert("An error occurred while adding the product to cart.");
+            }
+        });
+    }
 </script>
 
 <style>

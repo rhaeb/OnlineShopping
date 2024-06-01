@@ -12,7 +12,7 @@
     <h2>@ViewBag.NAME</h2>
     <div class="row">
         <div class="col-md-6">
-            <img src="@Url.Content("~/Home/Image?filename=" + HttpUtility.UrlEncode((string)ViewBag.IMAGE))" alt="Product Image" class="img-fluid rounded" style="max-width: 100%;">
+            <img src="@Url.Content("~/Store/Image?filename=" + HttpUtility.UrlEncode((string)ViewBag.IMAGE))" alt="Product Image" class="img-fluid rounded" style="max-width: 100%;">
         </div>
         <div class="col-md-6">
             <p><strong>Price:</strong> P @ViewBag.PRICE</p>
@@ -26,7 +26,7 @@
                 </div>
             </div>
             <br />
-            @if (User.Identity.IsAuthenticated)
+            @if (Session["IsAuthenticated"] != null && (bool)Session["IsAuthenticated"])
             {
                 <button type="button" class="btn btn-primary" id="addToCart">Add to Cart</button> }
             else
@@ -44,10 +44,29 @@
             var productId = @ViewBag.ID;
             var quantity = $("#quantity").val();
             addToCart(productId, quantity);
+
         });
     });
 
     function addToCart(productId, quantity) {
-        alert("Added " + quantity + " item(s) of product " + productId + " to the cart.");
+        $.ajax({
+            url: '/Store/AddToCart',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                productId: productId,
+                quantity: quantity
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert("Product added to cart successfully.");
+                } else {
+                    alert("Failed to add product to cart.");
+                }
+            },
+            error: function () {
+                alert("An error occurred while adding the product to cart.");
+            }
+        });
     }
 </script>
