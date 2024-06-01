@@ -41,7 +41,7 @@ namespace OnlineShopping.Controllers
             if (IsValidCustomer(usernameOrEmail, password))
             {
                 Session["Username"] = usernameOrEmail;
-                Session["IsAdmin"] = false; // Assuming customers are not admins
+                Session["IsAdmin"] = false;
                 return RedirectToAction("Index", "Store");
             }
 

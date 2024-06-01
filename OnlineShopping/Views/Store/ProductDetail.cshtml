@@ -2,11 +2,52 @@
     ViewBag.Title = "ProductDetail";
 }
 
-<h2>@ViewBag.NAME</h2>
-<div>
-    <img src="@Url.Content("~/Home/Image?filename=" + HttpUtility.UrlEncode((string)ViewBag.IMAGE))" alt="Product Image" style="width: 100%; border-radius: 10px;">
-    <p><strong>Price:</strong> P @ViewBag.PRICE</p>
-    <p><strong>Category:</strong> @ViewBag.CATEGORY</p>
-    <p>@ViewBag.DESCRIPTION</p>
-    <p><strong>Quantity:</strong> @ViewBag.QUANTITY</p>
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <br />
+            <a href="@Url.Action("ViewProducts", "Store")" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+    <h2>@ViewBag.NAME</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="@Url.Content("~/Home/Image?filename=" + HttpUtility.UrlEncode((string)ViewBag.IMAGE))" alt="Product Image" class="img-fluid rounded" style="max-width: 100%;">
+        </div>
+        <div class="col-md-6">
+            <p><strong>Price:</strong> P @ViewBag.PRICE</p>
+            <p><strong>Category:</strong> @ViewBag.CATEGORY</p>
+            <p>@ViewBag.DESCRIPTION</p>
+            <p><strong>Quantity:</strong> @ViewBag.QUANTITY</p>
+            <div class="form-group row">
+                <label for="quantity" class="col-sm-3 col-form-label">Quantity:</label>
+                <div class="col-sm-6">
+                    <input type="number" class="form-control" id="quantity" min="0" value="1" max="@ViewBag.QUANTITY">
+                </div>
+            </div>
+            <br />
+            @if (User.Identity.IsAuthenticated)
+            {
+                <button type="button" class="btn btn-primary" id="addToCart">Add to Cart</button> }
+            else
+            {
+                <p>Please <a href="@Url.Action("Login", "Account")">log in</a> to add this product to your cart.</p>
+            }
+        </div>
+    </div>
 </div>
+
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#addToCart").click(function () {
+            var productId = @ViewBag.ID;
+            var quantity = $("#quantity").val();
+            addToCart(productId, quantity);
+        });
+    });
+
+    function addToCart(productId, quantity) {
+        alert("Added " + quantity + " item(s) of product " + productId + " to the cart.");
+    }
+</script>

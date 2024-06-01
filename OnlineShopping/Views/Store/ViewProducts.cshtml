@@ -37,9 +37,15 @@
                                     <p class="card-text">@reader["DESCRIPTION"]</p>
                                     <p class="card-text"><strong>In Stock:</strong> @reader["QUANTITY"]</p>
                                     <div class="form-group">
-                                        <input type="number" class="form-control txtqty" name="txtqty" min="0" step="1" placeholder="Quantity" />
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <input type="number" class="form-control txtqty" name="txtqty" min="0" step="1" max="@reader["QUANTITY"]" placeholder="Quantity" />
+                                            <button type="button" class="btnCart">Add to Cart</button> }
+                                        else
+                                        {
+                                            <p>Please <a href="@Url.Action("Login", "Account")">login</a> to add to cart.</p>
+                                        }
                                     </div>
-                                    <button type="button" class="btnCart">Add to Cart</button>
                                 </div>
                             </div>
                         </div>
@@ -110,5 +116,9 @@
 
     .card button:hover {
         opacity: 0.7;
+    }
+
+    .btnCart {
+        width: 100%;
     }
 </style>
