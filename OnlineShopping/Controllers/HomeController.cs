@@ -563,56 +563,86 @@ namespace OnlineShopping.Controllers
         public ActionResult ProductUpdate(FormCollection collection, HttpPostedFileBase image)
         {
             var data = new List<object>();
-            var idno = collection["idno"];
-            var name = collection["name"];
-            var desc = collection["desc"];
-            var price = collection["price"];
-            var qty = collection["qty"];
-
-            string imageFileName = null;
-            if (image != null && image.ContentLength > 0)
+            try
             {
-                imageFileName = Path.GetFileName(image.FileName);
-                string logpath = "c:\\Uploads";
-                string filepath = Path.Combine(logpath, imageFileName);
-                image.SaveAs(filepath);
-            }
+                var idno = collection["idno"];
+                var name = collection["name"];
+                var desc = collection["desc"];
+                var priceStr = collection["price"];
+                var qtyStr = collection["qty"];
 
-            using (var db = new SqlConnection(connStr))
-            {
-                db.Open();
-                using (var cmd = db.CreateCommand())
+                string imageFileName = null;
+                if (image != null && image.ContentLength > 0)
                 {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.CommandText = "UPDATE PRODUCT SET "
-                                    + "NAME = @name, "
-                                    + "DESCRIPTION = @desc, "
-                                    + "PRICE = @price, "
-                                    + "QUANTITY = @qty";
-                    if (!string.IsNullOrEmpty(imageFileName))
-                    {
-                        cmd.CommandText += ", IMAGE = @image";
-                        cmd.Parameters.AddWithValue("@image", imageFileName);
-                    }
-                    cmd.CommandText += " WHERE ID = @idno";
-                    cmd.Parameters.AddWithValue("@idno", idno);
-                    cmd.Parameters.AddWithValue("@name", name);
-                    cmd.Parameters.AddWithValue("@desc", desc);
-                    cmd.Parameters.AddWithValue("@price", price);
-                    cmd.Parameters.AddWithValue("@qty", qty);
+                    imageFileName = Path.GetFileName(image.FileName);
+                    var extension = Path.GetExtension(imageFileName).ToLower();
+                    int filesize = image.ContentLength;
 
-                    var ctr = cmd.ExecuteNonQuery();
-                    if (ctr > 0)
+                    if (!IsImageFile(extension))
                     {
-                        data.Add(new { mess = 0 });
+                        throw new Exception("Invalid file type. Only images (jpg, jpeg, png, gif, bmp) are allowed.");
                     }
-                    else
+
+                    const int maxSize = 25 * 1024 * 1024;
+                    if (filesize > maxSize)
                     {
-                        data.Add(new { mess = 1, error = "Update failed." });
+                        throw new Exception("File size exceeds the maximum allowed limit (25MB).");
+                    }
+
+                    string logpath = "c:\\Uploads";
+                    string filepath = Path.Combine(logpath, imageFileName);
+                    image.SaveAs(filepath);
+                }
+
+                if (!float.TryParse(priceStr, out float price) || price < 0)
+                {
+                    throw new Exception("Invalid price format or negative value.");
+                }
+
+                if (!int.TryParse(qtyStr, out int qty) || qty < 0)
+                {
+                    throw new Exception("Invalid quantity format or negative value.");
+                }
+
+                using (var db = new SqlConnection(connStr))
+                {
+                    db.Open();
+                    using (var cmd = db.CreateCommand())
+                    {
+                        cmd.CommandType = CommandType.Text;
+                        cmd.CommandText = "UPDATE PRODUCT SET "
+                                        + "NAME = @name, "
+                                        + "DESCRIPTION = @desc, "
+                                        + "PRICE = @price, "
+                                        + "QUANTITY = @qty";
+                        if (!string.IsNullOrEmpty(imageFileName))
+                        {
+                            cmd.CommandText += ", IMAGE = @image";
+                            cmd.Parameters.AddWithValue("@image", imageFileName);
+                        }
+                        cmd.CommandText += " WHERE ID = @idno";
+                        cmd.Parameters.AddWithValue("@idno", idno);
+                        cmd.Parameters.AddWithValue("@name", name);
+                        cmd.Parameters.AddWithValue("@desc", desc);
+                        cmd.Parameters.AddWithValue("@price", price);
+                        cmd.Parameters.AddWithValue("@qty", qty);
+
+                        var ctr = cmd.ExecuteNonQuery();
+                        if (ctr > 0)
+                        {
+                            data.Add(new { mess = 0 });
+                        }
+                        else
+                        {
+                            data.Add(new { mess = 1, error = "Update failed." });
+                        }
                     }
                 }
             }
-
+            catch (Exception ex)
+            {
+                data.Add(new { mess = 1, error = ex.Message });
+            }
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
@@ -649,60 +679,90 @@ namespace OnlineShopping.Controllers
         [HttpPost]
         public ActionResult ProductUpdateEdit(FormCollection collection, HttpPostedFileBase image)
         {
-            var data = new List<object>();
-            var idno = collection["idno"];
-            var name = collection["name"];
-            var desc = collection["desc"];
-            var category = collection["category"];
-            var price = collection["price"];
-            var qty = collection["qty"];
-
-            string imageFileName = null;
-            if (image != null && image.ContentLength > 0)
+            var data = new List<object>(); 
+            try
             {
-                imageFileName = Path.GetFileName(image.FileName);
-                string logpath = "c:\\Uploads";
-                string filepath = Path.Combine(logpath, imageFileName);
-                image.SaveAs(filepath);
-            }
+                var idno = collection["idno"];
+                var name = collection["name"];
+                var desc = collection["desc"];
+                var category = collection["category"];
+                var priceStr = collection["price"];
+                var qtyStr = collection["qty"];
 
-            using (var db = new SqlConnection(connStr))
-            {
-                db.Open();
-                using (var cmd = db.CreateCommand())
+                string imageFileName = null;
+                if (image != null && image.ContentLength > 0)
                 {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.CommandText = "UPDATE PRODUCT SET "
-                                    + "NAME = @name, "
-                                    + "DESCRIPTION = @desc, "
-                                    + "CATEGORY = @category, "
-                                    + "PRICE = @price, "
-                                    + "QUANTITY = @qty";
-                    if (!string.IsNullOrEmpty(imageFileName))
-                    {
-                        cmd.CommandText += ", IMAGE = @image";
-                        cmd.Parameters.AddWithValue("@image", imageFileName);
-                    }
-                    cmd.CommandText += " WHERE ID = @idno";
-                    cmd.Parameters.AddWithValue("@idno", idno);
-                    cmd.Parameters.AddWithValue("@name", name);
-                    cmd.Parameters.AddWithValue("@desc", desc);
-                    cmd.Parameters.AddWithValue("@category", category);
-                    cmd.Parameters.AddWithValue("@price", price);
-                    cmd.Parameters.AddWithValue("@qty", qty);
+                    imageFileName = Path.GetFileName(image.FileName);
+                    var extension = Path.GetExtension(imageFileName).ToLower();
+                    int filesize = image.ContentLength;
 
-                    var ctr = cmd.ExecuteNonQuery();
-                    if (ctr > 0)
+                    if (!IsImageFile(extension))
                     {
-                        data.Add(new { mess = 0 });
+                        throw new Exception("Invalid file type. Only images (jpg, jpeg, png, gif, bmp) are allowed.");
                     }
-                    else
+
+                    const int maxSize = 25 * 1024 * 1024;
+                    if (filesize > maxSize)
                     {
-                        data.Add(new { mess = 1, error = "Update failed." });
+                        throw new Exception("File size exceeds the maximum allowed limit (25MB).");
+                    }
+
+                    string logpath = "c:\\Uploads";
+                    string filepath = Path.Combine(logpath, imageFileName);
+                    image.SaveAs(filepath);
+                }
+
+                if (!float.TryParse(priceStr, out float price) || price < 0)
+                {
+                    throw new Exception("Invalid price format or negative value.");
+                }
+
+                if (!int.TryParse(qtyStr, out int qty) || qty < 0)
+                {
+                    throw new Exception("Invalid quantity format or negative value.");
+                }
+
+                using (var db = new SqlConnection(connStr))
+                {
+                    db.Open();
+                    using (var cmd = db.CreateCommand())
+                    {
+                        cmd.CommandType = CommandType.Text;
+                        cmd.CommandText = "UPDATE PRODUCT SET "
+                                        + "NAME = @name, "
+                                        + "DESCRIPTION = @desc, "
+                                        + "CATEGORY = @category, "
+                                        + "PRICE = @price, "
+                                        + "QUANTITY = @qty";
+                        if (!string.IsNullOrEmpty(imageFileName))
+                        {
+                            cmd.CommandText += ", IMAGE = @image";
+                            cmd.Parameters.AddWithValue("@image", imageFileName);
+                        }
+                        cmd.CommandText += " WHERE ID = @idno";
+                        cmd.Parameters.AddWithValue("@idno", idno);
+                        cmd.Parameters.AddWithValue("@name", name);
+                        cmd.Parameters.AddWithValue("@desc", desc);
+                        cmd.Parameters.AddWithValue("@category", category);
+                        cmd.Parameters.AddWithValue("@price", price);
+                        cmd.Parameters.AddWithValue("@qty", qty);
+
+                        var ctr = cmd.ExecuteNonQuery();
+                        if (ctr > 0)
+                        {
+                            data.Add(new { mess = 0 });
+                        }
+                        else
+                        {
+                            data.Add(new { mess = 1, error = "Update failed." });
+                        }
                     }
                 }
             }
-
+            catch (Exception ex)
+            {
+                data.Add(new { mess = 1, error = ex.Message});
+            }
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 

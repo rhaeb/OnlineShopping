@@ -48,7 +48,19 @@
                                     <td>@reader["EMAIL"]</td>
                                     <td>@reader["PASSWORD"]</td>
                                     <td>@reader["USERNAME"]</td>
-                                    <td>@reader["DATE_OF_BIRTH"]</td>
+                                    <td>
+                                        @{
+                                            DateTime dob;
+                                            if (DateTime.TryParse(reader["DATE_OF_BIRTH"].ToString(), out dob))
+                                            {
+                                                @dob.ToString("yyyy-MM-dd")
+                                            }
+                                            else
+                                            {
+                                                @reader["DATE_OF_BIRTH"]
+                                            }
+                                        }
+                                    </td>
                                     <td>@reader["GENDER"]</td>
                                     <td>
                                         @Html.ActionLink("Edit", "EditCustomer", new { id = @reader["ID"] }, new { @class = "btn btn-primary btn-sm" })

@@ -19,7 +19,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Product ID</th>
+                <th>Product Name</th>
                 <th>Quantity</th>
                 <th>Subtotal</th>
                 <th>Price</th>
@@ -30,7 +30,7 @@
             @foreach (var item in ViewBag.CartItems)
             {
                 <tr>
-                    <td>@item.ProductId</td>
+                    <td>@item.ProductName</td> <!-- Display product name -->
                     <td>
                         <input type="number" class="form-control qty-input" value="@item.Quantity" min="1" />
                     </td>
@@ -58,7 +58,7 @@ else
         $(document).on('click', '.btn-update', function () {
             var productId = $(this).data('product-id');
             var quantity = $(this).closest('tr').find('.qty-input').val();
-            console.log("update button clicked")
+            console.log("update button clicked");
 
             $.post('../Store/UpdateCartItem', {
                 productId: productId,
@@ -76,7 +76,7 @@ else
 
         $(document).on('click', '.btn-delete', function () {
             var productId = $(this).data('product-id');
-            console.log("delete button clicked")
+            console.log("delete button clicked");
 
             $.post('../Store/DeleteCartItem', {
                 productId: productId,
@@ -91,7 +91,6 @@ else
             });
         });
     });
-
 </script>
 
 <style>

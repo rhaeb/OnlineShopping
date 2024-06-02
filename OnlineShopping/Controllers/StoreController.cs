@@ -20,6 +20,7 @@ namespace OnlineShopping.Controllers
         public class CartItemViewModel
         {
             public int ProductId { get; set; }
+            public string ProductName { get; set; }
             public int Quantity { get; set; }
             public decimal Subtotal { get; set; }
             public decimal Price { get; set; }
@@ -61,7 +62,10 @@ namespace OnlineShopping.Controllers
                     }
                 }
 
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM CART_ITEM WHERE CART_ID = @CartId", db))
+                using (SqlCommand cmd = new SqlCommand(@"
+                    SELECT * FROM CART_ITEM ci
+                    INNER JOIN PRODUCT p ON ci.PRODUCT_ID = p.ID
+                    WHERE ci.CART_ID = @CartId", db))
                 {
                     cmd.Parameters.AddWithValue("@CartId", ViewBag.ID);
 
@@ -72,6 +76,7 @@ namespace OnlineShopping.Controllers
                             cartItems.Add(new CartItemViewModel
                             {
                                 ProductId = Convert.ToInt32(reader["PRODUCT_ID"]),
+                                ProductName = reader["NAME"].ToString(), // Get product name
                                 Quantity = Convert.ToInt32(reader["QUANTITY"]),
                                 Subtotal = Convert.ToDecimal(reader["SUBTOTAL"]),
                                 Price = Convert.ToDecimal(reader["PRICE"])
@@ -92,20 +97,39 @@ namespace OnlineShopping.Controllers
             try
             {
                 var productId = Int32.Parse(Request["productId"]);
-                var quantity = Int32.Parse(Request["quantity"]);
+                var newQuantity = Int32.Parse(Request["quantity"]);
                 var cartId = Int32.Parse(Request["cartId"]);
+                int oldQuantity;
+
                 using (SqlConnection db = new SqlConnection(connStr))
                 {
                     db.Open();
 
+                    // Get the old quantity from the cart item
+                    using (SqlCommand cmd = db.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT QUANTITY FROM CART_ITEM WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
+                        cmd.Parameters.AddWithValue("@ProductId", productId);
+                        cmd.Parameters.AddWithValue("@CartId", cartId);
+                        oldQuantity = (int)cmd.ExecuteScalar();
+                    }
+
                     using (SqlCommand cmd = db.CreateCommand())
                     {
                         cmd.CommandText = "UPDATE CART_ITEM SET QUANTITY = @Quantity, SUBTOTAL = @Subtotal WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
-                        cmd.Parameters.AddWithValue("@Quantity", quantity);
-                        cmd.Parameters.AddWithValue("@Subtotal", quantity * GetProductPrice(productId));
+                        cmd.Parameters.AddWithValue("@Quantity", newQuantity);
+                        cmd.Parameters.AddWithValue("@Subtotal", newQuantity * GetProductPrice(productId));
                         cmd.Parameters.AddWithValue("@ProductId", productId);
                         cmd.Parameters.AddWithValue("@CartId", cartId);
+                        cmd.ExecuteNonQuery();
+                    }
 
+                    // Update the product quantity
+                    using (SqlCommand cmd = db.CreateCommand())
+                    {
+                        cmd.CommandText = "UPDATE PRODUCT SET QUANTITY = QUANTITY - @QuantityChange WHERE ID = @ProductId";
+                        cmd.Parameters.AddWithValue("@QuantityChange", newQuantity - oldQuantity);
+                        cmd.Parameters.AddWithValue("@ProductId", productId);
                         cmd.ExecuteNonQuery();
                     }
 
@@ -125,11 +149,12 @@ namespace OnlineShopping.Controllers
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "An error occurred while adding the product to the cart: " + ex.Message
+                    errorMessage = "An error occurred while updating the product in the cart: " + ex.Message
                 });
                 return Json(data, JsonRequestBehavior.AllowGet);
             }
         }
+
         private bool IsCartEmpty(SqlConnection db, int cartId)
         {
             using (SqlCommand cmd = db.CreateCommand())
@@ -157,19 +182,33 @@ namespace OnlineShopping.Controllers
             {
                 var productId = Int32.Parse(Request["productId"]);
                 var cartId = Int32.Parse(Request["cartId"]);
+                int currentQuantity;
+
                 using (SqlConnection db = new SqlConnection(connStr))
                 {
                     db.Open();
-                    int currentQuantity = GetCartItemQuantity(db, cartId, productId);
 
-                    UpdateProductQuantity(db, productId, currentQuantity);
+                    using (SqlCommand cmd = db.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT QUANTITY FROM CART_ITEM WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
+                        cmd.Parameters.AddWithValue("@ProductId", productId);
+                        cmd.Parameters.AddWithValue("@CartId", cartId);
+                        currentQuantity = (int)cmd.ExecuteScalar();
+                    }
+
+                    using (SqlCommand cmd = db.CreateCommand())
+                    {
+                        cmd.CommandText = "UPDATE PRODUCT SET QUANTITY = QUANTITY + @Quantity WHERE ID = @ProductId";
+                        cmd.Parameters.AddWithValue("@Quantity", currentQuantity);
+                        cmd.Parameters.AddWithValue("@ProductId", productId);
+                        cmd.ExecuteNonQuery();
+                    }
 
                     using (SqlCommand cmd = db.CreateCommand())
                     {
                         cmd.CommandText = "DELETE FROM CART_ITEM WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
                         cmd.Parameters.AddWithValue("@ProductId", productId);
                         cmd.Parameters.AddWithValue("@CartId", cartId);
-
                         cmd.ExecuteNonQuery();
                     }
 
@@ -183,7 +222,7 @@ namespace OnlineShopping.Controllers
                     data.Add(new
                     {
                         success = 1,
-                        errorMessage = "Updated successfully"
+                        errorMessage = "Deleted successfully"
                     });
 
                     return Json(data, JsonRequestBehavior.AllowGet);
@@ -194,11 +233,12 @@ namespace OnlineShopping.Controllers
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "An error occurred while adding the product to the cart: " + ex.Message
+                    errorMessage = "An error occurred while deleting the product from the cart: " + ex.Message
                 });
                 return Json(data, JsonRequestBehavior.AllowGet);
             }
         }
+
 
         private decimal GetProductPrice(int productId)
         {

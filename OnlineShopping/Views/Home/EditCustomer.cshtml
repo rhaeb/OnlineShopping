@@ -1,6 +1,15 @@
-﻿@using System.Globalization;
+﻿
 @{
     ViewBag.Title = "EditCustomer";
+    string dateOfBirth = "";
+    if (ViewBag.DateOfBirth != null)
+    {
+        DateTime dob;
+        if (DateTime.TryParse(ViewBag.DateOfBirth.ToString(), out dob))
+        {
+            dateOfBirth = dob.ToString("yyyy-MM-dd");
+        }
+    }
 }
 
 <h2>Edit Customer</h2>
@@ -28,7 +37,7 @@
     </div>
     <div class="mb-3">
         <label for="dob" class="form-label">Date Of Birth</label>
-        <input type="date" class="form-control" id="dob" value="@ViewBag.DateOfBirth">
+        <input type="date" class="form-control" id="dob" value="@dateOfBirth">
     </div>
     <div class="mb-3">
         <label for="gender" class="form-label">Gender</label>
@@ -43,7 +52,6 @@
 <input type="button" class="btn btn-primary" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
 <input type="button" class="btn btn-success" id="btnUpdate" name="btnUpdate" value="Update" />&nbsp;
 <input type="button" class="btn btn-danger" id="btnDelete" name="btnDelete" value="Delete" />&nbsp;
-
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
 <script src="~/Scripts/MyScripts/UpdateCustomer.js"></script>
