@@ -1,0 +1,131 @@
+﻿@{
+    ViewBag.Title = "Cart";
+}
+
+<h2>Cart</h2>
+
+@if (ViewBag.CartItems != null && ViewBag.CartItems.Count > 0)
+{
+    <div class="cart-details">
+        <p><strong>Cart ID:</strong> @ViewBag.ID</p>
+        <p><strong>Customer ID:</strong> @ViewBag.CUS_ID</p>
+        <p><strong>Date Created:</strong> @ViewBag.DATE_CREATED</p>
+        <p><strong>Total:</strong> @ViewBag.TOTAL</p>
+        <p><strong>Quantity:</strong> @ViewBag.QUANTITY</p>
+    </div>
+
+    <h3>Cart Items</h3>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Product ID</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in ViewBag.CartItems)
+            {
+                <tr>
+                    <td>@item.ProductId</td>
+                    <td>
+                        <input type="number" class="form-control qty-input" value="@item.Quantity" min="1" />
+                    </td>
+                    <td>@item.Subtotal</td>
+                    <td>@item.Price</td>
+                    <td>
+                        <button class="btn btn-primary btn-update" id="btn-update" data-product-id="@item.ProductId">Update</button>
+                        <button class="btn btn-danger btn-delete" id="btn-delete" data-product-id="@item.ProductId">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No items in cart.</p>
+}
+
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
+<script>
+    $(document).ready(function () {
+        var cartId = '@ViewBag.ID';
+
+        $(document).on('click', '.btn-update', function () {
+            var productId = $(this).data('product-id');
+            var quantity = $(this).closest('tr').find('.qty-input').val();
+            console.log("update button clicked")
+
+            $.post('../Store/UpdateCartItem', {
+                productId: productId,
+                quantity: quantity,
+                cartId: cartId
+            }, function (data) {
+                if (data[0].success == 1) {
+                    alert('Quantity updated successfully.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.errorMessage);
+                }
+            });
+        });
+
+        $(document).on('click', '.btn-delete', function () {
+            var productId = $(this).data('product-id');
+            console.log("delete button clicked")
+
+            $.post('../Store/DeleteCartItem', {
+                productId: productId,
+                cartId: cartId
+            }, function (data) {
+                if (data[0].success == 1) {
+                    alert('Item deleted successfully.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.errorMessage);
+                }
+            });
+        });
+    });
+
+</script>
+
+<style>
+    .cart-details {
+        margin-bottom: 20px;
+    }
+
+    .cart-details p {
+        margin: 0;
+        padding: 5px 0;
+    }
+
+    .table {
+        width: 100%;
+        margin: 20px 0;
+        border-collapse: collapse;
+    }
+
+    .table th, .table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+
+    .table th {
+        background-color: #f2f2f2;
+    }
+
+    .form-control {
+        width: 80px;
+        margin: 0 auto;
+    }
+
+    .btn {
+        margin: 5px;
+    }
+</style>

@@ -3,10 +3,7 @@
     ViewBag.Title = "ProductEntryForm";
 }
 
-<html>
-<head>
-
-</head>
+<h2>Create Product</h2>
 <body>
     <form id="productForm" method="post" action="../Home/ProductEntry" enctype="multipart/form-data">
         <div>
@@ -33,11 +30,18 @@
             <br />
             <input type="file" name="img" accept="image/png,image/jpeg,image/jpg,image/gif,image/bmp" />
             <br /><br />
+            <input type="button" class="btn btn-warning" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
             <input type="submit" value="Submit" class="btn btn-primary" id="btnclick" name="btnclick">
             <br />
         </div>
     </form>
 </body>
-</html>
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#btnBack").click(function () {
+            window.location.href = '/Home/ListAllProducts';
+        });
+    });
+</script>

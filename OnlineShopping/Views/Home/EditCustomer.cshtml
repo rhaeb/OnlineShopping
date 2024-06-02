@@ -1,4 +1,4 @@
-﻿
+﻿@using System.Globalization;
 @{
     ViewBag.Title = "EditCustomer";
 }
@@ -6,35 +6,43 @@
 <h2>Edit Customer</h2>
 <form id="customerEditForm" method="post" enctype="multipart/form-data">
     <h3>ID: </h3><h4 id="cusID">@ViewBag.cusID</h4>
-    First Name<br />
-    <input type="text" id="fname" value="@ViewBag.FirstName" />
-    <br />
-    Last Name<br />
-    <input type="text" id="lname" value="@ViewBag.LastName" />
-    <br />
-    Email<br />
-    <input type="text" id="email" value="@ViewBag.Email" />
-    <br />
-    Password<br />
-    <input type="text" id="pass" value="@ViewBag.Password" />
-    <br />
-    Username<br />
-    <input type="text" id="uname" value="@ViewBag.Username" />
-    <br />
-    Date Of Birth<br />
-    <input type="date" id="dob" />
-    <br />
-    Gender<br />
-    <select id="gender" required class="form-control">
-        <option value="" selected disabled>Select Gender</option>
-        <option value="F" @(ViewBag.Gender == "F" ? "selected" : "")>Female</option>
-        <option value="M" @(ViewBag.Gender == "M" ? "selected" : "")>Male</option>
-        <option value="O" @(ViewBag.Gender == "O" ? "selected" : "")>Other</option>
-    </select>
+    <div class="mb-3">
+        <label for="fname" class="form-label">First Name</label>
+        <input type="text" class="form-control" id="fname" value="@ViewBag.FirstName">
+    </div>
+    <div class="mb-3">
+        <label for="lname" class="form-label">Last Name</label>
+        <input type="text" class="form-control" id="lname" value="@ViewBag.LastName">
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="text" class="form-control" id="email" value="@ViewBag.Email">
+    </div>
+    <div class="mb-3">
+        <label for="pass" class="form-label">Password</label>
+        <input type="text" class="form-control" id="pass" value="@ViewBag.Password">
+    </div>
+    <div class="mb-3">
+        <label for="uname" class="form-label">Username</label>
+        <input type="text" class="form-control" id="uname" value="@ViewBag.Username">
+    </div>
+    <div class="mb-3">
+        <label for="dob" class="form-label">Date Of Birth</label>
+        <input type="date" class="form-control" id="dob" value="@ViewBag.DateOfBirth">
+    </div>
+    <div class="mb-3">
+        <label for="gender" class="form-label">Gender</label>
+        <select id="gender" class="form-select" required>
+            <option value="" selected disabled>Select Gender</option>
+            <option value="F" @(ViewBag.Gender == "F" ? "selected" : "")>Female</option>
+            <option value="M" @(ViewBag.Gender == "M" ? "selected" : "")>Male</option>
+            <option value="O" @(ViewBag.Gender == "O" ? "selected" : "")>Other</option>
+        </select>
+    </div>
 </form>
-<input type="button" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
-<input type="button" id="btnUpdate" name="btnUpdate" value="Update" />&nbsp;
-<input type="button" id="btnDelete" name="btnDelete" value="Delete" />&nbsp;
+<input type="button" class="btn btn-primary" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
+<input type="button" class="btn btn-success" id="btnUpdate" name="btnUpdate" value="Update" />&nbsp;
+<input type="button" class="btn btn-danger" id="btnDelete" name="btnDelete" value="Delete" />&nbsp;
 
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>

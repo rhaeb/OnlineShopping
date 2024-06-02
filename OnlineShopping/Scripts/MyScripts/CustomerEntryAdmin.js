@@ -1,4 +1,7 @@
 ﻿$(document).ready(function () {
+    $("#btnBack").click(function () {
+        window.location.href = '/Home/ListAllCustomers';
+    });
     $("#btnclick").click(function () {
         var lname = $("#lname").val();
         var fname = $("#fname").val();
@@ -12,7 +15,7 @@
             alert("Please enter only one letter for gender.")
         } else {
 
-            $.post('../Account/SignUpForm', {
+            $.post('../Home/CustomerAddEntry', {
                 fname: fname,
                 lname: lname,
                 email: email,
@@ -22,8 +25,7 @@
                 gender: gender,
             }, function (data) {
                 if (data[0].success == 1) {
-                    alert("Account successfully created!");
-                    $('#errorMessage').text("");
+                    alert("Successfully saved!");
                     $("#lname").val("");
                     $("#fname").val("");
                     $("#email").val("");
@@ -32,12 +34,7 @@
                     $("#dob").val("");
                     $("#gender").val("");
                 } else {
-                    var errorMessage = data[0].errorMessage;
-                    if (errorMessage) {
-                        $('#errorMessage').text(errorMessage);
-                    } else {
-                        alert("Failed to create account.");
-                    }
+                    alert("Something missing!");
                 }
             });
         }

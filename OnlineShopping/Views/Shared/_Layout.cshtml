@@ -52,28 +52,28 @@
                     @if (Session["IsAdmin"] != null && (bool)Session["IsAdmin"])
                     {
                         <li class="nav-item">
-                            @Html.ActionLink("Home", "Index", "Home", new { @class = "nav-link" })
+                            @Html.ActionLink("Home", "Index", "Home", null, new { @class = "nav-link" })
                         </li>
                         <li class="nav-item">
-                            @Html.ActionLink("Products", "ListAllProducts", "Home", new { @class = "nav-link" })
+                            @Html.ActionLink("Products", "ListAllProducts", "Home", null, new { @class = "nav-link" })
                         </li>
                         <li class="nav-item">
-                            @Html.ActionLink("Customers", "ListAllCustomers", "Home", new { @class = "nav-link" })
+                            @Html.ActionLink("Customers", "ListAllCustomers", "Home", null, new { @class = "nav-link" })
                         </li>
                     }
                     else if (Session["Username"] != null)
                     {
                         <li class="nav-item">
-                            @Html.ActionLink("Home", "Index", "Store", new { @class = "nav-link" })
+                            @Html.ActionLink("Shop", "ViewProducts", "Store", null, new { @class = "nav-link" })
                         </li>
                         <li class="nav-item">
-                            @Html.ActionLink("Create Order", "ViewProducts", "Store", new { @class = "nav-link" })
+                            @Html.ActionLink("View Cart", "Cart", "Store", new { user = Session["Username"] as String}, new { @class = "nav-link btn-cart" })
                         </li>
                     }
                     else
                     {
                         <li class="nav-item">
-                            @Html.ActionLink("Home", "Index", "Store", new { @class = "nav-link" })
+                            @Html.ActionLink("Store", "ViewProducts", "Store", null, new { @class = "nav-link" })
                         </li>
                     }
                 </ul>
@@ -96,9 +96,6 @@
                     else
                     {
                         <li class="nav-item">
-                            @Html.ActionLink("View Cart", "Cart", "Store", null, new { @class = "nav-link btn-cart" })
-                        </li>
-                        <li class="nav-item">
                             @Html.ActionLink("Logout", "Logout", "Account", null, new { @class = "nav-link" })
                         </li>
                     }
@@ -114,7 +111,7 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4qmlQIQieKl0Hq6r5/10M9Jowf4GmHEG5Rl0XUofBSBfCUl26L4f9W" crossorigin="anonymous"></script>
+    @*<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4qmlQIQieKl0Hq6r5/10M9Jowf4GmHEG5Rl0XUofBSBfCUl26L4f9W" crossorigin="anonymous"></script>*@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)

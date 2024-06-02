@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Globalization;
 using OnlineShopping.Filters;
 
 namespace OnlineShopping.Controllers
@@ -70,6 +71,12 @@ namespace OnlineShopping.Controllers
         }
 
         public ActionResult CustomerEntryForm()
+        {
+            ViewBag.Message = "Your customer entry page.";
+
+            return View();
+        }
+        public ActionResult CreateCustomer()
         {
             ViewBag.Message = "Your customer entry page.";
 
@@ -634,23 +641,6 @@ namespace OnlineShopping.Controllers
                     }
                 }
             }
-            List<string> categories = new List<string>();
-            string categoryQuery = "SELECT DISTINCT CATEGORY FROM PRODUCT";
-            using (var db = new SqlConnection(connStr))
-            {
-                db.Open();
-                using (var cmd = new SqlCommand(categoryQuery, db))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            categories.Add(reader["CATEGORY"].ToString());
-                        }
-                    }
-                }
-            }
-            ViewBag.Categories = categories;
 
             return View();
         }

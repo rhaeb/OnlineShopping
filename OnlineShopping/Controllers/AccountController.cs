@@ -44,7 +44,7 @@ namespace OnlineShopping.Controllers
                 Session["Username"] = usernameOrEmail;
                 Session["IsAuthenticated"] = true;
                 Session["IsAdmin"] = false;
-                return RedirectToAction("Index", "Store");
+                return RedirectToAction("ViewProducts", "Store");
             }
 
             ViewBag.Error = "Invalid username or password";
@@ -83,7 +83,6 @@ namespace OnlineShopping.Controllers
 
         public ActionResult SignUpForm()
         {
-
             var data = new List<object>();
             var lname = Request["lname"];
             var fname = Request["fname"];
@@ -93,42 +92,71 @@ namespace OnlineShopping.Controllers
             var dob = Request["dob"];
             var gender = Request["gender"];
 
+            if (IsUsernameUnique(username))
+            {
+                using (var db = new SqlConnection(connStr))
+                {
+                    db.Open();
+                    using (var cmd = db.CreateCommand())
+                    {
+                        cmd.CommandType = CommandType.Text;
+                        cmd.CommandText = "INSERT INTO customer(lname, fname, email, password, username, date_of_birth, gender) " +
+                                          "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";
+                        cmd.Parameters.AddWithValue("@cus_fname", fname);
+                        cmd.Parameters.AddWithValue("@cus_lname", lname);
+                        cmd.Parameters.AddWithValue("@cus_email", email);
+                        cmd.Parameters.AddWithValue("@cus_pass", pass);
+                        cmd.Parameters.AddWithValue("@cus_username", username);
+                        cmd.Parameters.AddWithValue("@cus_dob", dob);
+                        cmd.Parameters.AddWithValue("@cus_gender", gender);
+
+                        var ctr = cmd.ExecuteNonQuery();
+                        if (ctr >= 1)
+                        {
+                            data.Add(new
+                            {
+                                success = 1
+                            });
+                        }
+                        else
+                        {
+                            data.Add(new
+                            {
+                                success = 0
+                            });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Username is already taken. Please choose a different username."
+                });
+            }
+
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
+        private bool IsUsernameUnique(string username)
+        {
             using (var db = new SqlConnection(connStr))
             {
                 db.Open();
                 using (var cmd = db.CreateCommand())
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.CommandText = "INSERT INTO customer(lname, fname, email, password, username, date_of_birth, gender)"
-                        + "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";//yoursqlcommand
-                    cmd.Parameters.AddWithValue("@cus_fname", fname);
-                    cmd.Parameters.AddWithValue("@cus_lname", lname);
-                    cmd.Parameters.AddWithValue("@cus_email", email);
-                    cmd.Parameters.AddWithValue("@cus_pass", pass);
-                    cmd.Parameters.AddWithValue("@cus_username", username);
-                    cmd.Parameters.AddWithValue("@cus_dob", dob);
-                    cmd.Parameters.AddWithValue("@cus_gender", gender);
+                    cmd.CommandText = "SELECT COUNT(*) FROM customer WHERE username = @username";
+                    cmd.Parameters.AddWithValue("@username", username);
 
-                    var ctr = cmd.ExecuteNonQuery();
-                    if (ctr >= 1)
-                    {
-                        data.Add(new
-                        {
-                            success = 1
-                        });
-                    }
-                    else
-                    {
-                        data.Add(new
-                        {
-                            success = 0
-                        });
-                    }
-                };
+                    int count = (int)cmd.ExecuteScalar();
+                    return count == 0;
+                }
             }
-
-            return Json(data, JsonRequestBehavior.AllowGet);
         }
+
 
     }
 }

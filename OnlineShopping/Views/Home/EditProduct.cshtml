@@ -1,102 +1,111 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "EditProduct";
 }
 
-<h2>EditProduct</h2>
-
+<h2>Edit Product</h2>
 
 <form id="productEditForm" method="post" enctype="multipart/form-data">
-    <h3>ID: </h3><h4 id="prodID">@ViewBag.id</h4>
-    Name<br />
-    <input type="text" id="name" name="name" value="@ViewBag.name" />
-    <br />
-    Description<br />
-    <textarea id="description" name="description">@ViewBag.description</textarea>
-    <br />
-    Category<br />
-    <select id="category" name="category">
-        @foreach (var category in ViewBag.Categories)
-        {
-            <option value="@category">@category</option>
-}
-    </select>
-    <br />
-    Price<br />
-    <input type="text" id="price" name="price" value="@ViewBag.price" />
-    <br />
-    Quantity<br />
-    <input type="text" id="quantity" name="quantity" value="@ViewBag.quantity" />
-    <br />
-    Image<br />
-    <div id="imageContainer"></div>
-    <input type="file" id="img" name="img" accept="image/png,image/jpeg,image/jpg,image/gif,image/bmp" />
-    <br />
-    <input type="button" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
-    <input type="button" id="btnUpdate" name="btnUpdate" value="Update" />&nbsp;
-    <input type="button" id="btnDelete" name="btnDelete" value="Delete" />&nbsp;
+    <div class="mb-3">
+        <label for="prodID" class="form-label">ID:</label>
+        <h4 id="prodID">@ViewBag.id</h4>
+    </div>
+    <div class="mb-3">
+        <label for="name" class="form-label">Name:</label>
+        <input type="text" class="form-control" id="name" name="name" value="@ViewBag.name" />
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description:</label>
+        <textarea class="form-control" id="description" name="description">@ViewBag.description</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="category" class="form-label">Category:</label>
+        <select id="category" name="category" class="form-select">
+            <option value="FashionBeauty" @(ViewBag.category == "FashionBeauty" ? "selected" : "")>Fashion & Beauty</option>
+            <option value="Electronics" @(ViewBag.category == "Electronics" ? "selected" : "")>Electronics</option>
+            <option value="Furniture" @(ViewBag.category == "Furniture" ? "selected" : "")>Furniture</option>
+            <option value="Entertainment" @(ViewBag.category == "Entertainment" ? "selected" : "")>Entertainment</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="price" class="form-label">Price:</label>
+        <input type="text" class="form-control" id="price" name="price" value="@ViewBag.price" />
+    </div>
+    <div class="mb-3">
+        <label for="quantity" class="form-label">Quantity:</label>
+        <input type="text" class="form-control" id="quantity" name="quantity" value="@ViewBag.quantity" />
+    </div>
+    <div class="mb-3">
+        <label for="img" class="form-label">Image:</label>
+        <div id="imageContainer">
+            @if (!string.IsNullOrEmpty(ViewBag.image))
+            {
+                <img src="/Home/Image?filename=@HttpUtility.UrlEncode(ViewBag.image)" width="50%" alt="Product Image" class="img-fluid rounded" />
+            }
+        </div>
+        <input type="file" class="form-control" id="img" name="img" accept="image/png,image/jpeg,image/jpg,image/gif,image/bmp" />
+    </div>
+    <div class="mb-3">
+        <input type="button" class="btn btn-primary" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
+        <input type="button" class="btn btn-success" id="btnUpdate" name="btnUpdate" value="Update" />&nbsp;
+        <input type="button" class="btn btn-danger" id="btnDelete" name="btnDelete" value="Delete" />&nbsp;
+    </div>
 </form>
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
 <script>
-$(document).ready(function () {
-    if ('@ViewBag.image') {
-        $('#imageContainer').html('<img src="/Home/Image?filename=@HttpUtility.UrlEncode(ViewBag.image)" width="50%" alt="Product Image" />');
-    } else {
-        $('#imageContainer').html('');
-    }
-    $("#btnBack").click(function () {
-        window.location.href = '/Home/ListAllProducts';
-    });
+    $(document).ready(function () {
+        $("#btnBack").click(function () {
+            window.location.href = '/Home/ListAllProducts';
+        });
 
-    $("#btnUpdate").click(function (event) {
-        var formData = new FormData();
-        formData.append("idno", $("#prodID").text());
-        formData.append("name", $("#name").val());
-        formData.append("desc", $("#description").val());
-        formData.append("category", $("#category").val());
-        var price = parseFloat($("#price").val());
-        var quantity = parseInt($("#quantity").val());
-        formData.append("price", price);
-        formData.append("qty", quantity);
-        var imageFile = $('input[name="img"]')[0].files[0];
-        if (imageFile) {
-            formData.append("image", imageFile);
-        }
-        console.log("Data to be sent:", formData);
-        $.ajax({
-            url: "/Home/ProductUpdateEdit",
-            type: "POST",
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (data) {
-                if (data[0].mess == 0) {
-                    $("#name").val("");
-                    $("#description").val("");
-                    $("#category").val("");
-                    $("#price").val("");
-                    $("#quantity").val("");
-                    $('#imageContainer').html('');
-                    alert("The data successfully updated");
-                    window.location.href = '/Home/ListAllProducts';
-                } else {
-                    alert(data[0].error || 'An error occurred while updating the product.');
+        $("#btnUpdate").click(function (event) {
+            var formData = new FormData();
+            formData.append("idno", $("#prodID").text());
+            formData.append("name", $("#name").val());
+            formData.append("desc", $("#description").val());
+            formData.append("category", $("#category").val());
+            var price = parseFloat($("#price").val());
+            var quantity = parseInt($("#quantity").val());
+            formData.append("price", price);
+            formData.append("qty", quantity);
+            var imageFile = $('input[name="img"]')[0].files[0];
+            if (imageFile) {
+                formData.append("image", imageFile);
+            }
+            console.log("Data to be sent:", formData);
+            $.ajax({
+                url: "/Home/ProductUpdateEdit",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    if (data[0].mess == 0) {
+                        $("#name").val("");
+                        $("#description").val("");
+                        $("#category").val("");
+                        $("#price").val("");
+                        $("#quantity").val("");
+                        $('#imageContainer').html('');
+                        alert("The data successfully updated");
+                        window.location.href = '/Home/ListAllProducts';
+                    } else {
+                        alert(data[0].error || 'An error occurred while updating the product.');
+                    }
                 }
-            }
+            });
         });
-    });
 
-    $("#btnDelete").click(function () {
-        var id = $("#prodID").text();
-        $.post("../Home/ProductDelete", {
-            id: id
-        },function (data) {
-            if (data[0].mess == 0) {
-                alert("Product is successfully removed.");
-                window.location.href = '/Home/ListAllProducts';
-            }
+        $("#btnDelete").click(function () {
+            var id = $("#prodID").text();
+            $.post("../Home/ProductDelete", {
+                id: id
+            }, function (data) {
+                if (data[0].mess == 0) {
+                    alert("Product is successfully removed.");
+                    window.location.href = '/Home/ListAllProducts';
+                }
+            });
         });
     });
-});
 </script>

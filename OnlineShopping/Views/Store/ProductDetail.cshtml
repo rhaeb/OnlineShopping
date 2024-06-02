@@ -2,10 +2,9 @@
     ViewBag.Title = "ProductDetail";
 }
 
-<div class="container">
+<div class="container mt-5">
     <div class="row mb-3">
         <div class="col">
-            <br />
             <a href="@Url.Action("ViewProducts", "Store")" class="btn btn-secondary">Back</a>
         </div>
     </div>
@@ -19,7 +18,7 @@
             <p><strong>Category:</strong> @ViewBag.CATEGORY</p>
             <p>@ViewBag.DESCRIPTION</p>
             <p><strong>Quantity:</strong> @ViewBag.QUANTITY</p>
-            <div class="form-group row">
+            <div class="row">
                 <label for="quantity" class="col-sm-3 col-form-label">Quantity:</label>
                 <div class="col-sm-6">
                     <input type="number" class="form-control" id="quantity" min="0" value="1" max="@ViewBag.QUANTITY">
@@ -31,8 +30,7 @@
                 <button type="button" class="btn btn-primary" id="addToCart">Add to Cart</button> }
             else
             {
-                <p>Please <a href="@Url.Action("Login", "Account")">log in</a> to add this product to your cart.</p>
-            }
+                <p>Please <a href="@Url.Action("Login", "Account")" class="btn btn-link">log in</a> to add this product to your cart.</p>            }
         </div>
     </div>
 </div>
@@ -49,23 +47,14 @@
     });
 
     function addToCart(productId, quantity) {
-        $.ajax({
-            url: '/Store/AddToCart',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                productId: productId,
-                quantity: quantity
-            },
-            success: function (response) {
-                if (response.success) {
-                    alert("Product added to cart successfully.");
-                } else {
-                    alert("Failed to add product to cart.");
-                }
-            },
-            error: function () {
-                alert("An error occurred while adding the product to cart.");
+        $.post('../Store/AddToCart', {
+            productId: productId,
+            quantity: quantity
+        }, function (data) {
+            if (data[0].success == 1) {
+                alert("Product added to cart successfully.");
+            } else {
+                alert("Failed to add product to cart.");
             }
         });
     }

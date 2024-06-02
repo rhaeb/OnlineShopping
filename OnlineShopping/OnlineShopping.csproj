@@ -158,6 +158,7 @@
     <Content Include="Scripts\LatestJquery\jquery-3.7.1.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\MyScripts\CustomerEntry.js" />
+    <Content Include="Scripts\MyScripts\CustomerEntryAdmin.js" />
     <Content Include="Scripts\MyScripts\EditProduct.js" />
     <Content Include="Scripts\MyScripts\UpdateCustomer.js" />
     <Content Include="Scripts\MyScripts\UpdateDeleteSearch.js" />
@@ -192,6 +193,8 @@
     <Content Include="Views\Account\SignUp.cshtml" />
     <Content Include="Views\Home\EditCustomer.cshtml" />
     <Content Include="Views\Home\EditProduct.cshtml" />
+    <Content Include="Views\Store\Cart.cshtml" />
+    <Content Include="Views\Home\CreateCustomer.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Images\" />

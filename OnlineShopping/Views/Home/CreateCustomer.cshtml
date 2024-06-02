@@ -1,13 +1,12 @@
 ﻿
 @{
-    ViewBag.Title = "SignUp";
+    ViewBag.Title = "CreateCustomer";
 }
 
-<h2>Sign Up</h2>
+<h2>Create Customer</h2>
 
 
 <div class="div-container">
-
     <div>
         <div class="row">
             <div class="col-md-5">
@@ -34,7 +33,7 @@
         <div class="row">
             <div class="col-md-5">
                 Username <br />
-                <input type="text" id="username" required class="form-control">
+                <input type="text" id="username" class="form-control">
             </div>
             <div class="col-md-5">
                 Date Of Birth<br />
@@ -53,13 +52,13 @@
                 </select>
             </div>
         </div>
-        <br /><br />
-        <div id="errorMessage" style="color: red;"></div>
         <br />
+        <br /><br />
+        <input type="button" class="btn btn-warning" id="btnBack" name="btnBack" value="Go Back" />&nbsp;
         <input type="button" value="Submit" class="btn btn-primary" id="btnclick">
         <br />
     </div>
 </div>
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
-<script src="~/Scripts/Account/SignUp.js"></script>
+<script src="~/Scripts/MyScripts/CustomerEntryAdmin.js"></script>
