@@ -46,6 +46,17 @@ namespace OnlineShopping.Controllers
             public string DateOfBirth { get; set; }
             public string Gender { get; set; }
         }
+        public class OrderItem
+        {
+            public int ProductID { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public string Category { get; set; }
+            public decimal Price { get; set; }
+            public int Quantity { get; set; }
+            public decimal Subtotal { get; set; }
+        }
+
         public class ProductViewModel
         {
             public string Id { get; set; }
@@ -89,7 +100,7 @@ namespace OnlineShopping.Controllers
 
         public ActionResult ViewOrderItems(int orderId)
         {
-            List<dynamic> orderItems = new List<dynamic>();
+            List<OrderItem> orderItems = new List<OrderItem>();
 
             using (SqlConnection db = new SqlConnection(connStr))
             {
@@ -106,15 +117,15 @@ namespace OnlineShopping.Controllers
                     {
                         while (reader.Read())
                         {
-                            orderItems.Add(new
+                            orderItems.Add(new OrderItem
                             {
-                                ProductID = reader["product_id"],
-                                Name = reader["NAME"],
-                                Description = reader["DESCRIPTION"],
-                                Category = reader["CATEGORY"],
-                                Price = reader["PRICE"],
-                                Quantity = reader["quantity"],
-                                Subtotal = reader["subtotal"]
+                                ProductID = (int)reader["product_id"],
+                                Name = reader["NAME"].ToString(),
+                                Description = reader["DESCRIPTION"].ToString(),
+                                Category = reader["CATEGORY"].ToString(),
+                                Price = (decimal)reader["PRICE"],
+                                Quantity = (int)reader["quantity"],
+                                Subtotal = (decimal)reader["subtotal"]
                             });
                         }
                     }
@@ -126,7 +137,6 @@ namespace OnlineShopping.Controllers
 
             return View();
         }
-
 
 
         public ActionResult UpdateDelete()

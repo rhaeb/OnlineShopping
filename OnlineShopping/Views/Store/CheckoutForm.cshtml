@@ -12,14 +12,13 @@
 <div class="form-group">
     <label for="payment">Payment Method:</label>
     <select class="form-control" id="payment" name="payment" required>
-        <option value="Credit Card">Credit Card</option>
-        <option value="PayPal">PayPal</option>
-        <option value="Bank Transfer">Bank Transfer</option>
+        <option value="Cash">Cash</option>
+        <option value="E-Wallet">E-Wallet</option>
     </select>
 </div>
 <input type="hidden" id="cartId" name="cartId" value="@ViewBag.CartID" />
 <button type="button" id="submitCheckout" class="btn btn-primary">Submit</button>
-
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
 <script>
     $(document).ready(function() {
         $('#submitCheckout').click(function () {
@@ -27,17 +26,26 @@
             var payment = $('#payment').val();
             var cartId = $('#cartId').val();
 
+            console.log("Submit clicked");
+            console.log("Cart ID: " + cartId);
+
             $.post('/Store/SubmitCheckout', {
                 addressdet: addressdet,
                 payment: payment,
                 cartId: cartId
             }, function (data) {
-                if (data[0].success == 1) {
+                console.log("Response Data:", data);
+                if (data[0] && data[0].success == 1) {
                     alert('Order placed successfully.');
                     window.location.href = '@Url.Action("ViewProducts", "Store")';
                 } else {
-                    console.log('Error: ' + data[0].errorMessage);
+                    var errorMessage = data[0] && data[0].error ? data[0].error : 'An unknown error occurred.';
+                    console.log('Error: ' + errorMessage);
+                    alert('Error: ' + errorMessage);
                 }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.log('AJAX call failed: ' + textStatus + ', ' + errorThrown);
+                alert('AJAX call failed: ' + textStatus + ', ' + errorThrown);
             });
         });
     });

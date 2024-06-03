@@ -9,7 +9,20 @@
 
 <h2 class="mt-4 mb-3">List Of All Orders</h2>
 
+<form method="get" action="@Url.Action("ListAllOrders")" class="row g-3 mb-4">
+    <div class="col-auto">
+        <label for="search" class="col-form-label">Search:</label>
+    </div>
+    <div class="col-auto">
+        <input type="text" class="form-control" id="search" name="search" placeholder="Enter search term" value="@Request.QueryString["search"]">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3">Search</button>
+    </div>
+</form>
+
 @{
+    string searchQuery = Request.QueryString["search"];
     string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\admin\source\repos\OnlineShopping\OnlineShopping\App_Data\OnlineShopping.mdf;Integrated Security=True";
     using (var db = new SqlConnection(connStr))
     {
@@ -17,10 +30,27 @@
         using (var cmd = db.CreateCommand())
         {
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"
-                SELECT O.*, C.USERNAME
-                FROM [orders] O
-                JOIN [Customer] C ON O.cus_id = C.Id";
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                cmd.CommandText = @"
+            SELECT O.*, C.USERNAME
+            FROM [orders] O
+            JOIN [Customer] C ON O.cus_id = C.Id
+            WHERE CAST(O.Id AS NVARCHAR) LIKE @search OR
+                  C.USERNAME LIKE @search OR
+                  CAST(O.total AS NVARCHAR) LIKE @search OR
+                  CAST(O.datecreated AS NVARCHAR) LIKE @search OR
+                  O.addressdet LIKE @search OR
+                  O.payment LIKE @search";
+                cmd.Parameters.AddWithValue("@search", "%" + searchQuery + "%");
+            }
+            else
+            {
+                cmd.CommandText = @"
+            SELECT O.*, C.USERNAME
+            FROM [orders] O
+            JOIN [Customer] C ON O.cus_id = C.Id";
+            }
             using (var reader = cmd.ExecuteReader())
             {
                 if (reader.HasRows)
@@ -44,7 +74,7 @@
                                     <td>@reader["Id"]</td>
                                     <td>@reader["USERNAME"]</td>
                                     <td>@reader["total"]</td>
-                                    <td>@((DateTime)reader["datecreated"]).ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                    <td>@reader["datecreated"]</td>
                                     <td>@reader["addressdet"]</td>
                                     <td>@reader["payment"]</td>
                                     <td>

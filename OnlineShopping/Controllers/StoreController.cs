@@ -709,20 +709,21 @@ namespace OnlineShopping.Controllers
         public ActionResult SubmitCheckout()
         {
             var data = new List<object>();
-            var cartId = Int32.Parse(Request["cartId"]);
-            var payment = Request["payment"];
-            var addressdet = Request["addressdet"];
-            decimal total = 0;
-            int orderId;
-            int cusId;
-
             try
             {
+                var cartId = Int32.Parse(Request["cartId"]);
+                var payment = Request["payment"];
+                var addressdet = Request["addressdet"];
+                decimal total = 0;
+                int orderId;
+                int cusId;
+
+                Console.WriteLine($"Cart ID: {cartId}, Payment: {payment}, Address: {addressdet}");
+
                 using (var db = new SqlConnection(connStr))
                 {
                     db.Open();
 
-                    // Retrieve customer ID and total from cart
                     string cartQuery = "SELECT cus_id, total FROM CART WHERE ID = @cartId";
                     using (var cmd = new SqlCommand(cartQuery, db))
                     {
@@ -746,7 +747,6 @@ namespace OnlineShopping.Controllers
                         throw new Exception("Error calculating total");
                     }
 
-                    // Insert order
                     string orderQuery = "INSERT INTO orders (cus_id, total, addressdet, payment) OUTPUT INSERTED.ID VALUES (@cusId, @total, @addressdet, @payment)";
                     using (var cmd = new SqlCommand(orderQuery, db))
                     {
@@ -762,7 +762,6 @@ namespace OnlineShopping.Controllers
                         throw new Exception("Error inserting into orders");
                     }
 
-                    // Insert order items
                     string orderItemsQuery = "INSERT INTO order_item (order_id, product_id, quantity, subtotal) SELECT @orderId, CI.product_id, CI.quantity, (CI.quantity * P.price) AS subtotal FROM CART_ITEM CI JOIN PRODUCT P ON CI.product_id = P.id WHERE CI.cart_id = @cartId";
                     using (var cmd = new SqlCommand(orderItemsQuery, db))
                     {
@@ -775,7 +774,6 @@ namespace OnlineShopping.Controllers
                         }
                     }
 
-                    // Delete cart items
                     string deleteCartItemsQuery = "DELETE FROM CART_ITEM WHERE cart_id = @cartId";
                     using (var cmd = new SqlCommand(deleteCartItemsQuery, db))
                     {
@@ -787,7 +785,6 @@ namespace OnlineShopping.Controllers
                         }
                     }
 
-                    // Delete cart
                     string deleteCartQuery = "DELETE FROM CART WHERE ID = @cartId";
                     using (var cmd = new SqlCommand(deleteCartQuery, db))
                     {
@@ -805,11 +802,11 @@ namespace OnlineShopping.Controllers
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine("Checkout Error: " + ex.Message);
                 data.Add(new { success = 0, error = ex.Message });
                 return Json(data, JsonRequestBehavior.AllowGet);
             }
         }
-
 
     }
 }
