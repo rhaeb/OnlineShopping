@@ -399,13 +399,13 @@ namespace OnlineShopping.Controllers
                     errorMessage = "Password should at least be 6 characters long"
                 });
             }
-            var passwordRegex = new Regex(@"^(?=.*[a-zA-Z])(?=.*\d).{6,}$");
+            var passwordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$");
             if (!passwordRegex.IsMatch(pass))
             {
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "Password must contain at least one letter, one number, and be at least six characters long."
+                    errorMessage = "Password must contain at least one lowercase letter, one uppercase letter, one number, and be at least six characters long."
                 });
             }
             if (IsUsernameUnique(username))

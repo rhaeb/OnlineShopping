@@ -18,13 +18,13 @@
         <label for="search" class="col-form-label">Search:</label>
     </div>
     <div class="col-auto">
-        <input type="text" class="form-control" id="search" name="search" placeholder="Enter search term" value="@Request.QueryString["search"]">
+        <input type="text" class="form-control" id="search" name="search" placeholder="Search..." value="@Request.QueryString["search"]">
     </div>
     <div class="col-auto">
         <label for="category" class="col-form-label">Category:</label>
     </div>
     <div class="col-auto">
-        <select id="category" name="category" class="form-control">
+        <select id="category" name="category" class="form-select">
             <option value="" @(string.IsNullOrEmpty(Request.QueryString["category"]) ? "selected" : "")>All</option>
             <option value="FashionBeauty" @(Request.QueryString["category"] == "FashionBeauty" ? "selected" : "")>Fashion & Beauty</option>
             <option value="Electronics" @(Request.QueryString["category"] == "Electronics" ? "selected" : "")>Electronics</option>
