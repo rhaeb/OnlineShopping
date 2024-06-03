@@ -36,6 +36,8 @@ namespace OnlineShopping.Controllers
 
         public ActionResult Cart(string user)
         {
+            CheckCartExpiration(); 
+
             var cusid = GetCustomerIdByUsername(user);
             var cartItems = new List<CartItemViewModel>();
 
@@ -44,6 +46,7 @@ namespace OnlineShopping.Controllers
                 db.Open();
 
                 bool cartExists = false;
+                int cartId = 0;
 
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM CART WHERE CUS_ID = @ID", db))
                 {
@@ -54,7 +57,8 @@ namespace OnlineShopping.Controllers
                         if (reader.Read())
                         {
                             cartExists = true;
-                            ViewBag.ID = reader["ID"];
+                            cartId = Convert.ToInt32(reader["ID"]);
+                            ViewBag.ID = cartId;
                             ViewBag.CUS_ID = reader["CUS_ID"];
                             ViewBag.DATE_CREATED = reader["DATE_CREATED"];
                             ViewBag.TOTAL = reader["TOTAL"];
@@ -65,20 +69,34 @@ namespace OnlineShopping.Controllers
 
                 if (!cartExists)
                 {
+                    using (SqlCommand cmd = new SqlCommand("INSERT INTO CART (CUS_ID, DATE_CREATED, TOTAL, QUANTITY) VALUES (@CusId, @DateCreated, 0, 0); SELECT SCOPE_IDENTITY();", db))
+                    {
+                        cmd.Parameters.AddWithValue("@CusId", cusid);
+                        cmd.Parameters.AddWithValue("@DateCreated", DateTime.Now);
+
+                        cartId = Convert.ToInt32(cmd.ExecuteScalar());
+
+                        Session["CartId"] = cartId;
+                        Session["CartExpiration"] = DateTime.Now.AddMinutes(20);
+                    }
+
                     ViewBag.Message = "Cart is empty";
                     ViewBag.CartItems = cartItems;
                     return View();
                 }
 
+                Session["CartId"] = cartId;
+                Session["CartExpiration"] = DateTime.Now.AddMinutes(20);
+
                 using (SqlCommand cmd = new SqlCommand(@"
-                    SELECT ci.PRODUCT_ID, ci.QUANTITY AS CI_QUANTITY, ci.SUBTOTAL, 
-                    p.NAME, p.QUANTITY AS P_QUANTITY, p.PRICE, p.IMAGE
-                    FROM CART_ITEM ci
-                    INNER JOIN PRODUCT p ON ci.PRODUCT_ID = p.ID
-                    WHERE ci.CART_ID = @CartId
-                    ", db))
+                SELECT ci.PRODUCT_ID, ci.QUANTITY AS CI_QUANTITY, ci.SUBTOTAL, 
+                p.NAME, p.QUANTITY AS P_QUANTITY, p.PRICE, p.IMAGE
+                FROM CART_ITEM ci
+                INNER JOIN PRODUCT p ON ci.PRODUCT_ID = p.ID
+                WHERE ci.CART_ID = @CartId
+            ", db))
                 {
-                    cmd.Parameters.AddWithValue("@CartId", ViewBag.ID);
+                    cmd.Parameters.AddWithValue("@CartId", cartId);
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
@@ -98,10 +116,76 @@ namespace OnlineShopping.Controllers
                     }
                 }
             }
+
             ViewBag.CartItems = cartItems;
 
             return View();
         }
+
+        private void CheckCartExpiration()
+        {
+            if (Session["CartExpiration"] != null && DateTime.Now > (DateTime)Session["CartExpiration"])
+            {
+                int cartId = (int)Session["CartId"];
+                ClearExpiredCart(cartId);
+                Session["CartId"] = null;
+                Session["CartExpiration"] = null;
+            }
+        }
+
+        private void ClearExpiredCart(int cartId)
+        {
+            using (SqlConnection db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (SqlTransaction transaction = db.BeginTransaction())
+                {
+                    try
+                    {
+                        List<int> productIds = new List<int>();
+                        using (SqlCommand cmd = new SqlCommand("SELECT PRODUCT_ID, QUANTITY FROM CART_ITEM WHERE CART_ID = @CartId", db, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@CartId", cartId);
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    productIds.Add(Convert.ToInt32(reader["PRODUCT_ID"]));
+                                    int quantity = Convert.ToInt32(reader["QUANTITY"]);
+                                    
+                                    using (SqlCommand updateCmd = new SqlCommand("UPDATE PRODUCT SET QUANTITY = QUANTITY + @Quantity WHERE ID = @ProductId", db, transaction))
+                                    {
+                                        updateCmd.Parameters.AddWithValue("@Quantity", quantity);
+                                        updateCmd.Parameters.AddWithValue("@ProductId", reader["PRODUCT_ID"]);
+                                        updateCmd.ExecuteNonQuery();
+                                    }
+                                }
+                            }
+                        }
+
+                        using (SqlCommand cmd = new SqlCommand("DELETE FROM CART_ITEM WHERE CART_ID = @CartId", db, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@CartId", cartId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        using (SqlCommand cmd = new SqlCommand("DELETE FROM CART WHERE ID = @CartId", db, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@CartId", cartId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
 
         public ActionResult CancelCart()
         {
@@ -797,7 +881,7 @@ namespace OnlineShopping.Controllers
                     }
                 }
 
-                data.Add(new { success = 1 });
+                data.Add(new { success = 1, orderId = orderId });
                 return Json(data, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -807,6 +891,7 @@ namespace OnlineShopping.Controllers
                 return Json(data, JsonRequestBehavior.AllowGet);
             }
         }
+
 
     }
 }

@@ -1,25 +1,69 @@
-﻿@using System.Web
-@using System.Web.Mvc
-@using System.Data
-@using System.Data.SqlClient
-@using System.IO
-@using System.Drawing
-@using System.Drawing.Imaging
-@using System.Web.Services
+﻿@using System.Web;
+@using System.Web.Mvc;
+@using System.Data;
+@using System.Data.SqlClient;
+@using System.IO;
+@using System.Drawing;
+@using System.Drawing.Imaging;
+@using System.Web.Services;
+
 @{
     ViewBag.Title = "ViewProducts";
 }
+
 <h2>View Products</h2>
 
+<form method="get" action="@Url.Action("ViewProducts")" class="row g-3 mb-4">
+    <div class="col-auto">
+        <label for="search" class="col-form-label">Search:</label>
+    </div>
+    <div class="col-auto">
+        <input type="text" class="form-control" id="search" name="search" placeholder="Enter search term" value="@Request.QueryString["search"]">
+    </div>
+    <div class="col-auto">
+        <label for="category" class="col-form-label">Category:</label>
+    </div>
+    <div class="col-auto">
+        <select id="category" name="category" class="form-control">
+            <option value="" @(string.IsNullOrEmpty(Request.QueryString["category"]) ? "selected" : "")>All</option>
+            <option value="FashionBeauty" @(Request.QueryString["category"] == "FashionBeauty" ? "selected" : "")>Fashion & Beauty</option>
+            <option value="Electronics" @(Request.QueryString["category"] == "Electronics" ? "selected" : "")>Electronics</option>
+            <option value="Furniture" @(Request.QueryString["category"] == "Furniture" ? "selected" : "")>Furniture</option>
+            <option value="Entertainment" @(Request.QueryString["category"] == "Entertainment" ? "selected" : "")>Entertainment</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3">Search</button>
+    </div>
+</form>
+
 @{
+    string searchQuery = Request.QueryString["search"];
+    string selectedCategory = Request.QueryString["category"];
     string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\admin\source\repos\OnlineShopping\OnlineShopping\App_Data\OnlineShopping.mdf;Integrated Security=True";
+
     using (var db = new SqlConnection(connStr))
     {
         db.Open();
         using (var cmd = db.CreateCommand())
         {
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = "SELECT * FROM PRODUCT WHERE QUANTITY > 0";
+            var query = "SELECT * FROM PRODUCT WHERE QUANTITY > 0";
+
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                query += " AND (CAST(ID AS NVARCHAR) LIKE @search OR NAME LIKE @search OR DESCRIPTION LIKE @search OR CATEGORY LIKE @search)";
+                cmd.Parameters.AddWithValue("@search", "%" + searchQuery + "%");
+            }
+
+            if (!string.IsNullOrEmpty(selectedCategory))
+            {
+                query += " AND CATEGORY = @category";
+                cmd.Parameters.AddWithValue("@category", selectedCategory);
+            }
+
+            cmd.CommandText = query;
+
             using (var reader = cmd.ExecuteReader())
             {
                 if (reader.HasRows)
@@ -53,6 +97,10 @@
                         }
                     </div>
                 }
+                else
+                {
+                    <p class="text-warning">There are no products available.</p>
+                }
             }
         }
     }
@@ -76,6 +124,7 @@
             });
         });
     });
+
     function addToCart(productId, quantity, price) {
         console.log("Product ID:", productId);
         console.log("Quantity:", quantity);

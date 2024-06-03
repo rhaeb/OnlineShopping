@@ -33,13 +33,13 @@
             margin-left: 10px;
         }
 
+        .body-content {
+            margin-top: 60px;
+        }
+
         footer {
             text-align: center;
             margin-top: 20px;
-        }
-
-        .body-content {
-            margin-top: 60px;
         }
     </style>
 </head>
@@ -89,6 +89,12 @@
                     }
                 </ul>
                 <ul class="navbar-nav nav-right">
+                    @if (Session["Username"] != null)
+                    {
+                        <li class="nav-item d-flex align-items-center">
+                            <span class="nav-link">Hello, @Session["Username"]</span>
+                        </li>
+                    }
                     @if (Session["Username"] == null)
                     {
                         <li class="nav-item">
@@ -96,12 +102,6 @@
                         </li>
                         <li class="nav-item">
                             @Html.ActionLink("Sign Up", "SignUp", "Account", null, new { @class = "nav-link" })
-                        </li>
-                    }
-                    else if (Session["IsAdmin"] != null && (bool)Session["IsAdmin"])
-                    {
-                        <li class="nav-item">
-                            @Html.ActionLink("Logout", "Logout", "Account", null, new { @class = "nav-link" })
                         </li>
                     }
                     else
