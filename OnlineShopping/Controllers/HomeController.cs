@@ -326,7 +326,6 @@ namespace OnlineShopping.Controllers
                     cmd.Parameters.AddWithValue("@cus_gender", gender);
 
                     var ctr = cmd.ExecuteNonQuery();
-                    //value pila kabuok
                     if (ctr >= 1)
                     {
                         data.Add(new

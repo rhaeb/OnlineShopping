@@ -22,6 +22,7 @@ namespace OnlineShopping.Controllers
             public int ProductId { get; set; }
             public string ProductName { get; set; }
             public int Quantity { get; set; }
+            public int Onhand { get; set; }
             public decimal Subtotal { get; set; }
             public decimal Price { get; set; }
         }
@@ -41,6 +42,8 @@ namespace OnlineShopping.Controllers
             {
                 db.Open();
 
+                bool cartExists = false;
+
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM CART WHERE CUS_ID = @ID", db))
                 {
                     cmd.Parameters.AddWithValue("@ID", cusid);
@@ -49,23 +52,30 @@ namespace OnlineShopping.Controllers
                     {
                         if (reader.Read())
                         {
+                            cartExists = true;
                             ViewBag.ID = reader["ID"];
                             ViewBag.CUS_ID = reader["CUS_ID"];
                             ViewBag.DATE_CREATED = reader["DATE_CREATED"];
                             ViewBag.TOTAL = reader["TOTAL"];
                             ViewBag.QUANTITY = reader["QUANTITY"];
                         }
-                        else
-                        {
-                            return HttpNotFound();
-                        }
                     }
                 }
 
+                if (!cartExists)
+                {
+                    ViewBag.Message = "Cart is empty";
+                    ViewBag.CartItems = cartItems;
+                    return View();
+                }
+
                 using (SqlCommand cmd = new SqlCommand(@"
-                    SELECT * FROM CART_ITEM ci
+                    SELECT ci.PRODUCT_ID, ci.QUANTITY AS CI_QUANTITY, ci.SUBTOTAL, 
+                    p.NAME, p.QUANTITY AS P_QUANTITY, p.PRICE
+                    FROM CART_ITEM ci
                     INNER JOIN PRODUCT p ON ci.PRODUCT_ID = p.ID
-                    WHERE ci.CART_ID = @CartId", db))
+                    WHERE ci.CART_ID = @CartId
+                    ", db))
                 {
                     cmd.Parameters.AddWithValue("@CartId", ViewBag.ID);
 
@@ -76,8 +86,9 @@ namespace OnlineShopping.Controllers
                             cartItems.Add(new CartItemViewModel
                             {
                                 ProductId = Convert.ToInt32(reader["PRODUCT_ID"]),
-                                ProductName = reader["NAME"].ToString(), // Get product name
-                                Quantity = Convert.ToInt32(reader["QUANTITY"]),
+                                ProductName = reader["NAME"].ToString(),
+                                Quantity = Convert.ToInt32(reader["CI_QUANTITY"]),
+                                Onhand = Convert.ToInt32(reader["P_QUANTITY"]),
                                 Subtotal = Convert.ToDecimal(reader["SUBTOTAL"]),
                                 Price = Convert.ToDecimal(reader["PRICE"])
                             });
@@ -85,10 +96,97 @@ namespace OnlineShopping.Controllers
                     }
                 }
             }
-
             ViewBag.CartItems = cartItems;
 
             return View();
+        }
+
+        public ActionResult CancelCart()
+        {
+            var data = new List<object>();
+            try
+            {
+                var cartId = Int32.Parse(Request["cartId"]);
+                using (SqlConnection db = new SqlConnection(connStr))
+                {
+                    db.Open();
+
+                    var cartItems = new List<CartItemViewModel>();
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM CART_ITEM WHERE CART_ID = @CartId", db))
+                    {
+                        cmd.Parameters.AddWithValue("@CartId", cartId);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.HasRows)
+                            {
+                                throw new Exception("Cart not found.");
+                            }
+                            while (reader.Read())
+                            {
+                                cartItems.Add(new CartItemViewModel
+                                {
+                                    ProductId = Convert.ToInt32(reader["PRODUCT_ID"]),
+                                    Quantity = Convert.ToInt32(reader["QUANTITY"])
+                                });
+                            }
+                        }
+                    }
+
+                    foreach (var item in cartItems)
+                    {
+                        using (SqlCommand cmd = db.CreateCommand())
+                        {
+                            cmd.CommandText = "UPDATE PRODUCT SET QUANTITY = QUANTITY + @Quantity WHERE ID = @ProductId";
+                            cmd.Parameters.AddWithValue("@Quantity", item.Quantity);
+                            cmd.Parameters.AddWithValue("@ProductId", item.ProductId);
+                            int rowsAffected = cmd.ExecuteNonQuery();
+                            if (rowsAffected == 0)
+                            {
+                                throw new Exception("Failed to update product quantity.");
+                            }
+                        }
+                    }
+
+                    using (SqlCommand cmd = db.CreateCommand())
+                    {
+                        cmd.CommandText = "DELETE FROM CART_ITEM WHERE CART_ID = @CartId";
+                        cmd.Parameters.AddWithValue("@CartId", cartId);
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        if (rowsAffected == 0)
+                        {
+                            throw new Exception("Failed to delete cartitem.");
+                        }
+                    }
+
+                    using (SqlCommand cmd = db.CreateCommand())
+                    {
+                        cmd.CommandText = "DELETE FROM CART WHERE ID = @CartId";
+                        cmd.Parameters.AddWithValue("@CartId", cartId);
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        if (rowsAffected == 0)
+                        {
+                            throw new Exception("Failed to delete cart.");
+                        }
+                    }
+
+                    data.Add(new
+                    {
+                        success = 1,
+                        errorMessage = "Cart canceled successfully"
+                    });
+
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "An error occurred while canceling the cart: " + ex.Message
+                });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
         }
 
         public ActionResult UpdateCartItem()
@@ -99,13 +197,23 @@ namespace OnlineShopping.Controllers
                 var productId = Int32.Parse(Request["productId"]);
                 var newQuantity = Int32.Parse(Request["quantity"]);
                 var cartId = Int32.Parse(Request["cartId"]);
+
+                if (newQuantity < 0)
+                {
+                    data.Add(new
+                    {
+                        success = 0,
+                        errorMessage = "Quantity cannot be negative."
+                    });
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+
                 int oldQuantity;
 
                 using (SqlConnection db = new SqlConnection(connStr))
                 {
                     db.Open();
 
-                    // Get the old quantity from the cart item
                     using (SqlCommand cmd = db.CreateCommand())
                     {
                         cmd.CommandText = "SELECT QUANTITY FROM CART_ITEM WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
@@ -114,32 +222,88 @@ namespace OnlineShopping.Controllers
                         oldQuantity = (int)cmd.ExecuteScalar();
                     }
 
-                    using (SqlCommand cmd = db.CreateCommand())
+                    var prodquantity = GetProductQuantity(productId) + oldQuantity;
+                    if (newQuantity > prodquantity)
                     {
-                        cmd.CommandText = "UPDATE CART_ITEM SET QUANTITY = @Quantity, SUBTOTAL = @Subtotal WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
-                        cmd.Parameters.AddWithValue("@Quantity", newQuantity);
-                        cmd.Parameters.AddWithValue("@Subtotal", newQuantity * GetProductPrice(productId));
-                        cmd.Parameters.AddWithValue("@ProductId", productId);
-                        cmd.Parameters.AddWithValue("@CartId", cartId);
-                        cmd.ExecuteNonQuery();
+                        data.Add(new
+                        {
+                            success = 0,
+                            errorMessage = "Quantity cannot be greater than product onhand."
+                        });
+                        return Json(data, JsonRequestBehavior.AllowGet);
                     }
 
-                    // Update the product quantity
-                    using (SqlCommand cmd = db.CreateCommand())
+                    if (newQuantity == 0)
                     {
-                        cmd.CommandText = "UPDATE PRODUCT SET QUANTITY = QUANTITY - @QuantityChange WHERE ID = @ProductId";
-                        cmd.Parameters.AddWithValue("@QuantityChange", newQuantity - oldQuantity);
-                        cmd.Parameters.AddWithValue("@ProductId", productId);
-                        cmd.ExecuteNonQuery();
+                        using (SqlCommand cmd = db.CreateCommand())
+                        {
+                            cmd.CommandText = "DELETE FROM CART_ITEM WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
+                            cmd.Parameters.AddWithValue("@ProductId", productId);
+                            cmd.Parameters.AddWithValue("@CartId", cartId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        using (SqlCommand cmd = db.CreateCommand())
+                        {
+                            cmd.CommandText = "UPDATE PRODUCT SET QUANTITY = QUANTITY + @OldQuantity WHERE ID = @ProductId";
+                            cmd.Parameters.AddWithValue("@OldQuantity", oldQuantity);
+                            cmd.Parameters.AddWithValue("@ProductId", productId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        if (IsCartEmpty(db, cartId))
+                        {
+                            using (SqlCommand cmd = db.CreateCommand())
+                            {
+                                cmd.CommandText = "UPDATE CART SET TOTAL = 0 WHERE ID = @CartId";
+                                cmd.Parameters.AddWithValue("@CartId", cartId);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        else
+                        {
+                            UpdateCartwithItem(db, cartId);
+                        }
+
+                        if (IsCartEmpty(db, cartId))
+                        {
+                            DeleteCart(db, cartId);
+                        }
+
+                        data.Add(new
+                        {
+                            success = 1,
+                            errorMessage = "Deleted successfully"
+                        });
                     }
-
-                    UpdateCartwithItem(db, cartId);
-
-                    data.Add(new
+                    else
                     {
-                        success = 1,
-                        errorMessage = "Updated successfully"
-                    });
+                        using (SqlCommand cmd = db.CreateCommand())
+                        {
+                            cmd.CommandText = "UPDATE CART_ITEM SET QUANTITY = @Quantity, SUBTOTAL = @Subtotal WHERE PRODUCT_ID = @ProductId AND CART_ID = @CartId";
+                            cmd.Parameters.AddWithValue("@Quantity", newQuantity);
+                            cmd.Parameters.AddWithValue("@Subtotal", newQuantity * GetProductPrice(productId));
+                            cmd.Parameters.AddWithValue("@ProductId", productId);
+                            cmd.Parameters.AddWithValue("@CartId", cartId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        using (SqlCommand cmd = db.CreateCommand())
+                        {
+                            cmd.CommandText = "UPDATE PRODUCT SET QUANTITY = QUANTITY + @QuantityChange WHERE ID = @ProductId";
+                            cmd.Parameters.AddWithValue("@QuantityChange", oldQuantity - newQuantity);
+                            cmd.Parameters.AddWithValue("@ProductId", productId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        UpdateCartwithItem(db, cartId);
+
+                        data.Add(new
+                        {
+                            success = 1,
+                            errorMessage = "Updated successfully"
+                        });
+                    }
 
                     return Json(data, JsonRequestBehavior.AllowGet);
                 }
@@ -212,11 +376,21 @@ namespace OnlineShopping.Controllers
                         cmd.ExecuteNonQuery();
                     }
 
-                    UpdateCart(db, cartId);
+                    using (SqlCommand cmd = db.CreateCommand())
+                    {
+                        cmd.CommandText = "UPDATE CART SET QUANTITY = QUANTITY - @Quantity WHERE ID = @CartId";
+                        cmd.Parameters.AddWithValue("@Quantity", currentQuantity);
+                        cmd.Parameters.AddWithValue("@CartId", cartId);
+                        cmd.ExecuteNonQuery();
+                    }
 
                     if (IsCartEmpty(db, cartId))
                     {
                         DeleteCart(db, cartId);
+                    }
+                    else
+                    {
+                        UpdateCart(db, cartId);
                     }
 
                     data.Add(new
@@ -248,6 +422,20 @@ namespace OnlineShopping.Controllers
                 using (SqlCommand cmd = db.CreateCommand())
                 {
                     cmd.CommandText = "SELECT PRICE FROM PRODUCT WHERE ID = @ProductId";
+                    cmd.Parameters.AddWithValue("@ProductId", productId);
+
+                    return Convert.ToDecimal(cmd.ExecuteScalar());
+                }
+            }
+        }
+        private decimal GetProductQuantity(int productId)
+        {
+            using (SqlConnection db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (SqlCommand cmd = db.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT QUANTITY FROM PRODUCT WHERE ID = @ProductId";
                     cmd.Parameters.AddWithValue("@ProductId", productId);
 
                     return Convert.ToDecimal(cmd.ExecuteScalar());

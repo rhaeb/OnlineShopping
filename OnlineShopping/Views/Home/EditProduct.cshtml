@@ -87,10 +87,10 @@
                         $("#price").val("");
                         $("#quantity").val("");
                         $('#imageContainer').html('');
-                        alert("The data successfully updated");
+                        console.log("The data successfully updated");
                         window.location.href = '/Home/ListAllProducts';
                     } else {
-                        alert(data[0].error || 'An error occurred while updating the product.');
+                        console.log(data[0].error || 'An error occurred while updating the product.');
                     }
                 }
             });
@@ -102,7 +102,7 @@
                 id: id
             }, function (data) {
                 if (data[0].mess == 0) {
-                    alert("Product is successfully removed.");
+                    console.log("Product is successfully removed.");
                     window.location.href = '/Home/ListAllProducts';
                 }
             });

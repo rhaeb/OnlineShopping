@@ -11,7 +11,6 @@
         if (gender.length != 1) {
             alert("Please enter only one letter for gender.")
         } else {
-
             $.post('../Home/CustomerAddEntry', {
                 fname: fname,
                 lname: lname,
@@ -22,7 +21,7 @@
                 gender: gender,
             }, function (data) {
                 if (data[0].success == 1) {
-                    alert("Successfully saved!");
+                    console.log("Successfully saved!");
                     $("#lname").val("");
                     $("#fname").val("");
                     $("#email").val("");
@@ -31,7 +30,7 @@
                     $("#dob").val("");
                     $("#gender").val("");
                 } else {
-                    alert("Something missing!");
+                    console.log("Something missing!");
                 }
             });
         }

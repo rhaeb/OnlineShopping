@@ -1,64 +1,66 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "SignUp";
 }
 
 <h2>Sign Up</h2>
 
-
-<div class="div-container">
-
-    <div>
-        <div class="row">
-            <div class="col-md-5">
-                Last Name <br />
-                <input type="text" id="lname" required class="form-control">
-            </div>
-            <div class="col-md-5">
-                First Name <br />
-                <input type="text" id="fname" required class="form-control">
-            </div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="lname" class="form-label">Last Name</label>
+            <input type="text" id="lname" required class="form-control">
         </div>
-        <br />
-        <div class="row">
-            <div class="col-md-5">
-                Email Address <br />
-                <input type="text" id="email" required class="form-control">
-            </div>
-            <div class="col-md-5">
-                Password <br />
+        <div class="col-md-6">
+            <label for="fname" class="form-label">First Name</label>
+            <input type="text" id="fname" required class="form-control">
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="text" id="email" required class="form-control">
+        </div>
+        <div class="col-md-6">
+            <label for="pass" class="form-label">Password</label>
+            <div class="input-group">
                 <input type="password" id="pass" required class="form-control">
             </div>
+                <input type="checkbox" id="showPassword" name="showPassword"> Show Password
         </div>
-        <br />
-        <div class="row">
-            <div class="col-md-5">
-                Username <br />
-                <input type="text" id="username" required class="form-control">
-            </div>
-            <div class="col-md-5">
-                Date Of Birth<br />
-                <input type="date" id="dob" required class="form-control">
-            </div>
-        </div>
-        <br />
-        <div class="row">
-            <div class="col-md-5">
-                Gender <br />
-                <select id="gender" required class="form-control">
-                    <option value="" selected disabled>Select Gender</option>
-                    <option value="F">Female</option>
-                    <option value="M">Male</option>
-                    <option value="O">Other</option>
-                </select>
-            </div>
-        </div>
-        <br /><br />
-        <div id="errorMessage" style="color: red;"></div>
-        <br />
-        <input type="button" value="Submit" class="btn btn-primary" id="btnclick">
-        <br />
     </div>
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <label for="confirmPass" class="form-label">Confirm Password</label>
+            <input type="password" id="confirmPass" required class="form-control">
+        </div>
+        <div class="col-md-6">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" id="username" required class="form-control">
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <label for="dob" class="form-label">Date Of Birth</label>
+            <input type="date" id="dob" required class="form-control">
+        </div>
+        <div class="col-md-6">
+            <label for="gender" class="form-label">Gender</label>
+            <select id="gender" required class="form-select">
+                <option value="" selected disabled>Select Gender</option>
+                <option value="F">Female</option>
+                <option value="M">Male</option>
+                <option value="O">Other</option>
+            </select>
+        </div>
+    </div>
+    <br /><br />
+    <div id="errorMessage" style="color: red;"></div>
+    <br />
+    <button type="button" class="btn btn-primary" id="btnclick">Submit</button>
+    <br />
 </div>
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>

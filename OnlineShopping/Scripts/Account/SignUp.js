@@ -1,15 +1,29 @@
 ﻿$(document).ready(function () {
+    $("#showPassword").change(function () {
+        var passField = $("#pass");
+        if (this.checked) {
+            passField.attr("type", "text");
+        } else {
+            passField.attr("type", "password");
+        }
+    });
+
     $("#btnclick").click(function () {
         var lname = $("#lname").val();
         var fname = $("#fname").val();
         var email = $("#email").val();
         var pass = $("#pass").val();
+        var confirmPass = $("#confirmPass").val();
         var username = $("#username").val();
         var dob = $("#dob").val();
         var gender = $("#gender").val();
 
+        if (pass !== confirmPass) {
+            $("#errorMessage").text("Passwords do not match.");
+            return;
+        }
         if (gender.length != 1) {
-            alert("Please enter only one letter for gender.")
+            $("#errorMessage").text("Please enter only one letter for gender.")
         } else {
 
             $.post('../Account/SignUpForm', {
@@ -31,6 +45,7 @@
                     $("#username").val("");
                     $("#dob").val("");
                     $("#gender").val("");
+                    window.location.href = '/Account/Login';
                 } else {
                     var errorMessage = data[0].errorMessage;
                     if (errorMessage) {

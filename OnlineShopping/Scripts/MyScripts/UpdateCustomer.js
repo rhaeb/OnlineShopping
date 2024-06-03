@@ -33,10 +33,9 @@
             gender: gender
         }, function (response) {
             if (response[0].mess == 0) {
-                alert("Customer updated successfully");
                 window.location.href = '/Home/ListAllCustomers';
             } else {
-                alert("Failed to update customer");
+                console.log("Failed to update customer");
             }
         });
     });
@@ -61,7 +60,7 @@
                 $("#uname").val("");
                 $("#dob").val("");
                 $("#gender").val("");
-                alert("Data is successfully removed.");
+                console.log("Data is successfully removed.");
                 window.location.href = '/Home/ListAllCustomers';
             }
         });
