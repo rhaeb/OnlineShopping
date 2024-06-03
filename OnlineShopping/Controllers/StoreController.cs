@@ -143,7 +143,7 @@ namespace OnlineShopping.Controllers
                 {
                     try
                     {
-                        List<int> productIds = new List<int>();
+                        var cartItems = new List<(int ProductId, int Quantity)>();
                         using (SqlCommand cmd = new SqlCommand("SELECT PRODUCT_ID, QUANTITY FROM CART_ITEM WHERE CART_ID = @CartId", db, transaction))
                         {
                             cmd.Parameters.AddWithValue("@CartId", cartId);
@@ -151,16 +151,18 @@ namespace OnlineShopping.Controllers
                             {
                                 while (reader.Read())
                                 {
-                                    productIds.Add(Convert.ToInt32(reader["PRODUCT_ID"]));
-                                    int quantity = Convert.ToInt32(reader["QUANTITY"]);
-                                    
-                                    using (SqlCommand updateCmd = new SqlCommand("UPDATE PRODUCT SET QUANTITY = QUANTITY + @Quantity WHERE ID = @ProductId", db, transaction))
-                                    {
-                                        updateCmd.Parameters.AddWithValue("@Quantity", quantity);
-                                        updateCmd.Parameters.AddWithValue("@ProductId", reader["PRODUCT_ID"]);
-                                        updateCmd.ExecuteNonQuery();
-                                    }
+                                    cartItems.Add((Convert.ToInt32(reader["PRODUCT_ID"]), Convert.ToInt32(reader["QUANTITY"])));
                                 }
+                            }
+                        }
+
+                        foreach (var item in cartItems)
+                        {
+                            using (SqlCommand updateCmd = new SqlCommand("UPDATE PRODUCT SET QUANTITY = QUANTITY + @Quantity WHERE ID = @ProductId", db, transaction))
+                            {
+                                updateCmd.Parameters.AddWithValue("@Quantity", item.Quantity);
+                                updateCmd.Parameters.AddWithValue("@ProductId", item.ProductId);
+                                updateCmd.ExecuteNonQuery();
                             }
                         }
 
@@ -186,7 +188,6 @@ namespace OnlineShopping.Controllers
                 }
             }
         }
-
 
         public ActionResult CancelCart()
         {

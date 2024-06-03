@@ -90,7 +90,7 @@
                         console.log("The data successfully updated");
                         window.location.href = '/Home/ListAllProducts';
                     } else {
-                        console.log(data[0].error || 'An error occurred while updating the product.');
+                        alert(data[0].error || 'An error occurred while updating the product.');
                     }
                 }
             });
@@ -98,14 +98,20 @@
 
         $("#btnDelete").click(function () {
             var id = $("#prodID").text();
-            $.post("../Home/ProductDelete", {
-                id: id
-            }, function (data) {
-                if (data[0].mess == 0) {
-                    console.log("Product is successfully removed.");
-                    window.location.href = '/Home/ListAllProducts';
-                }
-            });
+            console.log("Delete button clicked");
+
+            if (confirm("Are you sure you want to delete this product?")) {
+                $.post("/Home/ProductDelete", {
+                    id: id
+                }, function (data) {
+                    if (data[0].mess == 0) {
+                        console.log("Product is successfully removed.");
+                        window.location.href = '/Home/ListAllProducts';
+                    } else {
+                        alert(data[0].error || 'An error occurred while deleting the product.');
+                    }
+                });
+            }
         });
     });
 </script>
