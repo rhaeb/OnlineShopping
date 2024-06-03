@@ -1,0 +1,67 @@
+﻿@using System.Web;
+@using System.Web.Mvc;
+@using System.Data;
+@using System.Data.SqlClient;
+
+@{
+    ViewBag.Title = "ListAllOrders";
+}
+
+<h2 class="mt-4 mb-3">List Of All Orders</h2>
+
+@{
+    string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\admin\source\repos\OnlineShopping\OnlineShopping\App_Data\OnlineShopping.mdf;Integrated Security=True";
+    using (var db = new SqlConnection(connStr))
+    {
+        db.Open();
+        using (var cmd = db.CreateCommand())
+        {
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = @"
+                SELECT O.*, C.USERNAME
+                FROM [orders] O
+                JOIN [Customer] C ON O.cus_id = C.Id";
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    <table class="table table-striped table-hover table-bordered" id="datatable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>CUSTOMER USERNAME</th>
+                                <th>TOTAL</th>
+                                <th>DATE CREATED</th>
+                                <th>ADDRESS DETAILS</th>
+                                <th>PAYMENT DETAILS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @while (reader.Read())
+                            {
+                                <tr>
+                                    <td>@reader["Id"]</td>
+                                    <td>@reader["USERNAME"]</td>
+                                    <td>@reader["total"]</td>
+                                    <td>@((DateTime)reader["datecreated"]).ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                    <td>@reader["addressdet"]</td>
+                                    <td>@reader["payment"]</td>
+                                    <td>
+                                        @Html.ActionLink("View Items", "ViewOrderItems", new { orderId = @reader["Id"] }, new { @class = "btn btn-primary btn-sm me-1" })
+                                        @Html.ActionLink("Delete", "DeleteOrder", new { id = @reader["Id"] }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('Are you sure you want to delete this order?');" })
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-warning">There are no orders in the list</p>
+                }
+            }
+        }
+    }
+}
+<script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>

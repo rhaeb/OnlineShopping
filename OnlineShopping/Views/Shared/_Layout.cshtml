@@ -65,6 +65,9 @@
                         <li class="nav-item">
                             @Html.ActionLink("Customers", "ListAllCustomers", "Home", null, new { @class = "nav-link" })
                         </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Orders", "ListAllOrders", "Home", null, new { @class = "nav-link" })
+                        </li>
                     }
                     else if (Session["Username"] != null)
                     {

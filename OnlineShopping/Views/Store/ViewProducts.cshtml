@@ -29,7 +29,7 @@
                         {
                             <div class="col-md-3 mb-4">
                                 <div class="card" data-product-id="@reader["ID"]">
-                                    <img class="card-img" src="../Store/Image?filename=@HttpUtility.UrlEncode(reader["IMAGE"] + "")" alt="Product Image" onclick="gotoDetail(@reader["ID"])">
+                                    <img class="card-img" src="../Store/Image?filename=@HttpUtility.UrlEncode(reader["IMAGE"] + "")" alt="Product Image">
                                     <div class="card-body">
                                         <h5 class="card-title">@reader["NAME"]</h5>
                                         <p class="card-text"><strong>Price:</strong> P @reader["PRICE"]</p>
@@ -60,9 +60,6 @@
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
 <script>
-    function gotoDetail(productId) {
-        window.location.href = '../Store/ProductDetail?id=' + productId;
-    }
     $(document).ready(function () {
         $(".btnCart").each(function () {
             $(this).click(function () {
@@ -107,7 +104,6 @@
         box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
         max-width: 300px;
         border-radius: 10px;
-        cursor: pointer;
     }
 
     .card img {

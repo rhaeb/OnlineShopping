@@ -65,6 +65,69 @@ namespace OnlineShopping.Controllers
         {
             return View();
         }
+        public ActionResult ListAllOrders()
+        {
+            return View();
+        }
+
+        //orders
+        public ActionResult DeleteOrder(int id)
+        {
+            using (var db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (var cmd = db.CreateCommand())
+                {
+                    cmd.CommandText = "DELETE FROM [orders] WHERE Id = @Id";
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            TempData["Message"] = "Order deleted successfully.";
+            return RedirectToAction("ListAllOrders");
+        }
+
+        public ActionResult ViewOrderItems(int orderId)
+        {
+            List<dynamic> orderItems = new List<dynamic>();
+
+            using (SqlConnection db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (SqlCommand cmd = new SqlCommand(
+                    @"SELECT OI.product_id, P.NAME, P.DESCRIPTION, P.CATEGORY, P.PRICE, OI.quantity, OI.subtotal
+                  FROM order_item OI
+                  JOIN PRODUCT P ON OI.product_id = P.ID
+                  WHERE OI.order_id = @orderId", db))
+                {
+                    cmd.Parameters.AddWithValue("@orderId", orderId);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            orderItems.Add(new
+                            {
+                                ProductID = reader["product_id"],
+                                Name = reader["NAME"],
+                                Description = reader["DESCRIPTION"],
+                                Category = reader["CATEGORY"],
+                                Price = reader["PRICE"],
+                                Quantity = reader["quantity"],
+                                Subtotal = reader["subtotal"]
+                            });
+                        }
+                    }
+                }
+            }
+
+            ViewBag.OrderID = orderId;
+            ViewBag.OrderItems = orderItems;
+
+            return View();
+        }
+
+
 
         public ActionResult UpdateDelete()
         {

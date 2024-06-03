@@ -52,15 +52,17 @@
         </tbody>
     </table>
 
-    <div class="d-flex justify-content-end">
+    <div class="d-flex justify-content-between">
         <div class="card">
             <div class="card-body">
                 <p class="h5">Total: P @ViewBag.TOTAL</p>
             </div>
         </div>
+        <div>
+            <button class="btn btn-primary btn-checkout">Checkout</button>
+            <button class="btn btn-danger btn-cancel-cart">Cancel Cart</button>
+        </div>
     </div>
-
-    <button class="btn btn-danger btn-cancel-cart">Cancel Cart</button>
 }
 else
 {
@@ -95,7 +97,7 @@ else
             var productId = $(this).data('product-id');
             console.log("delete button clicked");
 
-            $.post('@Url.Action("DeleteCartItem", "Store")', {
+            $.post('../Store/DeleteCartItem', {
                 productId: productId,
                 cartId: cartId
             }, function (data) {
@@ -111,11 +113,26 @@ else
         $(document).on('click', '.btn-cancel-cart', function () {
             console.log("cancel cart button clicked");
 
-            $.post('@Url.Action("CancelCart", "Store")', {
+            $.post('../Store/CancelCart', {
                 cartId: cartId
             }, function (data) {
                 if (data[0].success == 1) {
                     alert('Cart canceled successfully.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data[0].errorMessage);
+                }
+            });
+        });
+
+        $(document).on('click', '.btn-checkout', function () {
+            console.log("checkout button clicked");
+
+            $.post('../Store/Checkout', {
+                cartId: cartId
+            }, function (data) {
+                if (data[0].success == 1) {
+                    alert('Checkout successful.');
                     location.reload();
                 } else {
                     alert('Error: ' + data[0].errorMessage);

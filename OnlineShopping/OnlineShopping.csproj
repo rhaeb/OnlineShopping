@@ -241,6 +241,8 @@
     <Content Include="Views\Home\EditProduct.cshtml" />
     <Content Include="Views\Store\Cart.cshtml" />
     <Content Include="Views\Home\CreateCustomer.cshtml" />
+    <Content Include="Views\Home\ListAllOrders.cshtml" />
+    <Content Include="Views\Home\ViewOrderItems.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Images\" />
