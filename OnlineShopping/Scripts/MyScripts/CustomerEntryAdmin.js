@@ -33,8 +33,14 @@
                     $("#username").val("");
                     $("#dob").val("");
                     $("#gender").val("");
+                    window.location.href = '/Home/ListAllCustomers';
                 } else {
-                    alert("Something missing!");
+                    var errorMessage = data[0].errorMessage;
+                    if (errorMessage) {
+                        $('#errorMessage').text(errorMessage);
+                    } else {
+                        alert("Failed to create account.");
+                    }
                 }
             });
         }

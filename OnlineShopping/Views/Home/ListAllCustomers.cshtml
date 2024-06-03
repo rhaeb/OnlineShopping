@@ -10,8 +10,22 @@
     ViewBag.Title = "ListAllCustomers";
 }
 
-<h2>List Of All Customers</h2>
+<h2 class="mt-4 mb-3">List Of All Customers</h2>
+
+<form method="get" action="@Url.Action("ListAllCustomers")" class="row g-3 mb-4">
+    <div class="col-auto">
+        <label for="search" class="col-form-label">Search:</label>
+    </div>
+    <div class="col-auto">
+        <input type="text" class="form-control" id="search" name="search" placeholder="Enter search term" value="@Request.QueryString["search"]">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3">Search</button>
+    </div>
+</form>
+
 @{
+    string searchQuery = Request.QueryString["search"];
     string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\admin\source\repos\OnlineShopping\OnlineShopping\App_Data\OnlineShopping.mdf;Integrated Security=True";
     using (var db = new SqlConnection(connStr))
     {
@@ -19,13 +33,26 @@
         using (var cmd = db.CreateCommand())
         {
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = "SELECT * FROM CUSTOMER";
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                cmd.CommandText = @"SELECT * FROM CUSTOMER
+                            WHERE CAST(ID AS NVARCHAR) LIKE @search OR
+                                  LNAME LIKE @search OR
+                                  FNAME LIKE @search OR
+                                  EMAIL LIKE @search OR
+                                  USERNAME LIKE @search";
+                cmd.Parameters.AddWithValue("@search", "%" + searchQuery + "%");
+            }
+            else
+            {
+                cmd.CommandText = "SELECT * FROM CUSTOMER";
+            }
             using (var reader = cmd.ExecuteReader())
             {
                 if (reader.HasRows)
                 {
-                    <table class="table table-striped table-bordered" id="datatable">
-                        <thead>
+                    <table class="table table-striped table-hover table-bordered" id="datatable">
+                        <thead class="table-dark">
                             <tr>
                                 <th>CUSTOMER ID</th>
                                 <th>LAST NAME</th>
@@ -63,7 +90,7 @@
                                     </td>
                                     <td>@reader["GENDER"]</td>
                                     <td>
-                                        @Html.ActionLink("Edit", "EditCustomer", new { id = @reader["ID"] }, new { @class = "btn btn-primary btn-sm" })
+                                        @Html.ActionLink("Edit", "EditCustomer", new { id = @reader["ID"] }, new { @class = "btn btn-primary btn-sm me-1" })
                                         @Html.ActionLink("Delete", "DeleteCustomer", new { id = @reader["ID"] }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('Are you sure you want to delete this customer?');" })
                                     </td>
                                 </tr>
@@ -73,7 +100,7 @@
                 }
                 else
                 {
-                    <p>There are no customers in the list</p>
+                    <p class="text-warning">There are no customers in the list</p>
                 }
             }
         }

@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Globalization;
 using OnlineShopping.Filters;
+using System.Text.RegularExpressions;
 
 namespace OnlineShopping.Controllers
 {
@@ -59,7 +60,7 @@ namespace OnlineShopping.Controllers
         {
             return View();
         }
-        
+
         public ActionResult ListAllCustomers()
         {
             return View();
@@ -309,44 +310,122 @@ namespace OnlineShopping.Controllers
             var dob = Request["dob"];
             var gender = Request["gender"];
 
+            if (username.ToLower() == "admin")
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Username is invalid."
+                });
+            }
+            if (pass.Length < 6)
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Password should at least be 6 characters long"
+                });
+            }
+            var passwordRegex = new Regex(@"^(?=.*[a-zA-Z])(?=.*\d).{6,}$");
+            if (!passwordRegex.IsMatch(pass))
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Password must contain at least one letter, one number, and be at least six characters long."
+                });
+            }
+            if (IsUsernameUnique(username))
+            {
+                if (IsEmailUnique(email))
+                {
+                    using (var db = new SqlConnection(connStr))
+                    {
+                        db.Open();
+                        using (var cmd = db.CreateCommand())
+                        {
+                            cmd.CommandType = CommandType.Text;
+                            cmd.CommandText = "INSERT INTO customer(lname, fname, email, password, username, date_of_birth, gender)"
+                                + "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";//yoursqlcommand
+                            cmd.Parameters.AddWithValue("@cus_fname", fname);
+                            cmd.Parameters.AddWithValue("@cus_lname", lname);
+                            cmd.Parameters.AddWithValue("@cus_email", email);
+                            cmd.Parameters.AddWithValue("@cus_pass", pass);
+                            cmd.Parameters.AddWithValue("@cus_username", username);
+                            cmd.Parameters.AddWithValue("@cus_dob", dob);
+                            cmd.Parameters.AddWithValue("@cus_gender", gender);
+
+                            var ctr = cmd.ExecuteNonQuery();
+                            if (ctr >= 1)
+                            {
+                                data.Add(new
+                                {
+                                    success = 1
+                                });
+                            }
+                            else
+                            {
+                                data.Add(new
+                                {
+                                    success = 0
+                                });
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    data.Add(new
+                    {
+                        success = 0,
+                        errorMessage = "Email is already taken."
+                    });
+                }
+                }
+                else
+                {
+                    data.Add(new
+                    {
+                    success = 0,
+                    errorMessage = "Username is already taken. Please choose a different username."
+                });
+            }
+
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
+        private bool IsUsernameUnique(string username)
+        {
             using (var db = new SqlConnection(connStr))
             {
                 db.Open();
                 using (var cmd = db.CreateCommand())
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.CommandText = "INSERT INTO customer(lname, fname, email, password, username, date_of_birth, gender)"
-                        + "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";//yoursqlcommand
-                    cmd.Parameters.AddWithValue("@cus_fname", fname);
-                    cmd.Parameters.AddWithValue("@cus_lname", lname);
-                    cmd.Parameters.AddWithValue("@cus_email", email);
-                    cmd.Parameters.AddWithValue("@cus_pass", pass);
-                    cmd.Parameters.AddWithValue("@cus_username", username);
-                    cmd.Parameters.AddWithValue("@cus_dob", dob);
-                    cmd.Parameters.AddWithValue("@cus_gender", gender);
+                    cmd.CommandText = "SELECT COUNT(*) FROM customer WHERE username = @username";
+                    cmd.Parameters.AddWithValue("@username", username);
 
-                    var ctr = cmd.ExecuteNonQuery();
-                    if (ctr >= 1)
-                    {
-                        data.Add(new
-                        {
-                            success = 1
-                        });
-                    }
-                    else
-                    {
-                        data.Add(new
-                        {
-                            success = 0
-                        });
-                    }
-                };
+                    int count = (int)cmd.ExecuteScalar();
+                    return count == 0;
+                }
             }
-
-            return Json(data, JsonRequestBehavior.AllowGet);
         }
+        private bool IsEmailUnique(string email)
+        {
+            using (var db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (var cmd = db.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = "SELECT COUNT(*) FROM customer WHERE email = @email";
+                    cmd.Parameters.AddWithValue("@email", email);
 
-
+                    int count = (int)cmd.ExecuteScalar();
+                    return count == 0;
+                }
+            }
+        }
         /////////////////////search customer
 
         public ActionResult SearchCustomer()
