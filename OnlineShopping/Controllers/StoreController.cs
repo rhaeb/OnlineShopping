@@ -77,7 +77,7 @@ namespace OnlineShopping.Controllers
                         cartId = Convert.ToInt32(cmd.ExecuteScalar());
 
                         Session["CartId"] = cartId;
-                        Session["CartExpiration"] = DateTime.Now.AddMinutes(2);
+                        Session["CartExpiration"] = DateTime.Now.AddMinutes(30);
                     }
 
                     ViewBag.Message = "Cart is empty";
@@ -86,7 +86,7 @@ namespace OnlineShopping.Controllers
                 }
 
                 Session["CartId"] = cartId;
-                Session["CartExpiration"] = DateTime.Now.AddMinutes(2);
+                Session["CartExpiration"] = DateTime.Now.AddMinutes(30);
 
                 using (SqlCommand cmd = new SqlCommand(@"
                 SELECT ci.PRODUCT_ID, ci.QUANTITY AS CI_QUANTITY, ci.SUBTOTAL, 
