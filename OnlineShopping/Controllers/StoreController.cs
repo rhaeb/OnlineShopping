@@ -681,5 +681,135 @@ namespace OnlineShopping.Controllers
                 cmd.ExecuteNonQuery();
             }
         }
+
+        //checkout
+        public ActionResult CheckoutForm(int id)
+        {
+            string query = "SELECT * FROM CART WHERE ID = @id";
+
+            using (var db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (var cmd = new SqlCommand(query, db))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            ViewBag.CartID = reader["ID"].ToString();
+                        }
+                    }
+                }
+            }
+
+            return View();
+        }
+
+        public ActionResult SubmitCheckout()
+        {
+            var data = new List<object>();
+            var cartId = Int32.Parse(Request["cartId"]);
+            var payment = Request["payment"];
+            var addressdet = Request["addressdet"];
+            decimal total = 0;
+            int orderId;
+            int cusId;
+
+            try
+            {
+                using (var db = new SqlConnection(connStr))
+                {
+                    db.Open();
+
+                    // Retrieve customer ID and total from cart
+                    string cartQuery = "SELECT cus_id, total FROM CART WHERE ID = @cartId";
+                    using (var cmd = new SqlCommand(cartQuery, db))
+                    {
+                        cmd.Parameters.AddWithValue("@cartId", cartId);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                cusId = (int)reader["cus_id"];
+                                total = (decimal)reader["total"];
+                            }
+                            else
+                            {
+                                throw new Exception("Cart not found");
+                            }
+                        }
+                    }
+
+                    if (total <= 0)
+                    {
+                        throw new Exception("Error calculating total");
+                    }
+
+                    // Insert order
+                    string orderQuery = "INSERT INTO orders (cus_id, total, addressdet, payment) OUTPUT INSERTED.ID VALUES (@cusId, @total, @addressdet, @payment)";
+                    using (var cmd = new SqlCommand(orderQuery, db))
+                    {
+                        cmd.Parameters.AddWithValue("@cusId", cusId);
+                        cmd.Parameters.AddWithValue("@total", total);
+                        cmd.Parameters.AddWithValue("@addressdet", addressdet);
+                        cmd.Parameters.AddWithValue("@payment", payment);
+                        orderId = (int)cmd.ExecuteScalar();
+                    }
+
+                    if (orderId <= 0)
+                    {
+                        throw new Exception("Error inserting into orders");
+                    }
+
+                    // Insert order items
+                    string orderItemsQuery = "INSERT INTO order_item (order_id, product_id, quantity, subtotal) SELECT @orderId, CI.product_id, CI.quantity, (CI.quantity * P.price) AS subtotal FROM CART_ITEM CI JOIN PRODUCT P ON CI.product_id = P.id WHERE CI.cart_id = @cartId";
+                    using (var cmd = new SqlCommand(orderItemsQuery, db))
+                    {
+                        cmd.Parameters.AddWithValue("@orderId", orderId);
+                        cmd.Parameters.AddWithValue("@cartId", cartId);
+                        var ctr = cmd.ExecuteNonQuery();
+                        if (ctr <= 0)
+                        {
+                            throw new Exception("Error inserting into order_item");
+                        }
+                    }
+
+                    // Delete cart items
+                    string deleteCartItemsQuery = "DELETE FROM CART_ITEM WHERE cart_id = @cartId";
+                    using (var cmd = new SqlCommand(deleteCartItemsQuery, db))
+                    {
+                        cmd.Parameters.AddWithValue("@cartId", cartId);
+                        var ctr = cmd.ExecuteNonQuery();
+                        if (ctr <= 0)
+                        {
+                            throw new Exception("Error deleting cart_items");
+                        }
+                    }
+
+                    // Delete cart
+                    string deleteCartQuery = "DELETE FROM CART WHERE ID = @cartId";
+                    using (var cmd = new SqlCommand(deleteCartQuery, db))
+                    {
+                        cmd.Parameters.AddWithValue("@cartId", cartId);
+                        var ctr = cmd.ExecuteNonQuery();
+                        if (ctr <= 0)
+                        {
+                            throw new Exception("Error deleting cart");
+                        }
+                    }
+                }
+
+                data.Add(new { success = 1 });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                data.Add(new { success = 0, error = ex.Message });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
     }
 }

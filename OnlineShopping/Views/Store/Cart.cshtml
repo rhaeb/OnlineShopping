@@ -59,7 +59,7 @@
             </div>
         </div>
         <div>
-            <button class="btn btn-primary btn-checkout">Checkout</button>
+            @Html.ActionLink("Checkout", "CheckoutForm", new { id = @ViewBag.ID }, new { @class = "btn btn-primary" })
             <button class="btn btn-danger btn-cancel-cart">Cancel Cart</button>
         </div>
     </div>
@@ -79,7 +79,7 @@ else
             var quantity = $(this).closest('tr').find('.qty-input').val();
             console.log("update button clicked");
 
-            $.post('@Url.Action("UpdateCartItem", "Store")', {
+            $.post('../Store/UpdateCartItem', {
                 productId: productId,
                 quantity: quantity,
                 cartId: cartId
@@ -125,20 +125,6 @@ else
             });
         });
 
-        $(document).on('click', '.btn-checkout', function () {
-            console.log("checkout button clicked");
-
-            $.post('../Store/Checkout', {
-                cartId: cartId
-            }, function (data) {
-                if (data[0].success == 1) {
-                    alert('Checkout successful.');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data[0].errorMessage);
-                }
-            });
-        });
     });
 </script>
 <style>

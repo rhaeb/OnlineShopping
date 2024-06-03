@@ -243,6 +243,7 @@
     <Content Include="Views\Home\CreateCustomer.cshtml" />
     <Content Include="Views\Home\ListAllOrders.cshtml" />
     <Content Include="Views\Home\ViewOrderItems.cshtml" />
+    <Content Include="Views\Store\CheckoutForm.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Images\" />
