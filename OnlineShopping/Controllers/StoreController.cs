@@ -77,7 +77,7 @@ namespace OnlineShopping.Controllers
                         cartId = Convert.ToInt32(cmd.ExecuteScalar());
 
                         Session["CartId"] = cartId;
-                        Session["CartExpiration"] = DateTime.Now.AddMinutes(20);
+                        Session["CartExpiration"] = DateTime.Now.AddMinutes(2);
                     }
 
                     ViewBag.Message = "Cart is empty";
@@ -132,6 +132,7 @@ namespace OnlineShopping.Controllers
                 Session["CartExpiration"] = null;
             }
         }
+
 
         private void ClearExpiredCart(int cartId)
         {
