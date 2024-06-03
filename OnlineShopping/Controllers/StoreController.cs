@@ -86,7 +86,7 @@ namespace OnlineShopping.Controllers
                 }
 
                 Session["CartId"] = cartId;
-                Session["CartExpiration"] = DateTime.Now.AddMinutes(20);
+                Session["CartExpiration"] = DateTime.Now.AddMinutes(2);
 
                 using (SqlCommand cmd = new SqlCommand(@"
                 SELECT ci.PRODUCT_ID, ci.QUANTITY AS CI_QUANTITY, ci.SUBTOTAL, 
