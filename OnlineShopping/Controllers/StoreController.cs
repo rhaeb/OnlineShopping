@@ -20,6 +20,7 @@ namespace OnlineShopping.Controllers
         public class CartItemViewModel
         {
             public int ProductId { get; set; }
+            public string ProductImage { get; set; }
             public string ProductName { get; set; }
             public int Quantity { get; set; }
             public int Onhand { get; set; }
@@ -71,7 +72,7 @@ namespace OnlineShopping.Controllers
 
                 using (SqlCommand cmd = new SqlCommand(@"
                     SELECT ci.PRODUCT_ID, ci.QUANTITY AS CI_QUANTITY, ci.SUBTOTAL, 
-                    p.NAME, p.QUANTITY AS P_QUANTITY, p.PRICE
+                    p.NAME, p.QUANTITY AS P_QUANTITY, p.PRICE, p.IMAGE
                     FROM CART_ITEM ci
                     INNER JOIN PRODUCT p ON ci.PRODUCT_ID = p.ID
                     WHERE ci.CART_ID = @CartId
@@ -90,7 +91,8 @@ namespace OnlineShopping.Controllers
                                 Quantity = Convert.ToInt32(reader["CI_QUANTITY"]),
                                 Onhand = Convert.ToInt32(reader["P_QUANTITY"]),
                                 Subtotal = Convert.ToDecimal(reader["SUBTOTAL"]),
-                                Price = Convert.ToDecimal(reader["PRICE"])
+                                Price = Convert.ToDecimal(reader["PRICE"]),
+                                ProductImage = reader["IMAGE"].ToString()
                             });
                         }
                     }

@@ -6,48 +6,60 @@
 
 @if (ViewBag.CartItems != null && ViewBag.CartItems.Count > 0)
 {
-    <div class="cart-details">
-        <p><strong>Cart ID:</strong> @ViewBag.ID</p>
-        <p><strong>Customer ID:</strong> @ViewBag.CUS_ID</p>
-        <p><strong>Date Created:</strong> @ViewBag.DATE_CREATED</p>
-        <p><strong>Total:</strong> @ViewBag.TOTAL</p>
-        <p><strong>Quantity:</strong> @ViewBag.QUANTITY</p>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-7">
+                    <p class="fw-bold mb-1">Date Created:</p>
+                    <p>@ViewBag.DATE_CREATED</p>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <h3>Cart Items</h3>
 
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Product ID</th>
+                <th>Product Image</th>
                 <th>Product Name</th>
                 <th>Product Onhand</th>
                 <th>Quantity</th>
-                <th>Subtotal</th>
-                <th>Price</th>
                 <th>Actions</th>
+                <th>Price</th>
+                <th>Subtotal</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in ViewBag.CartItems)
             {
                 <tr>
-                    <td>@item.ProductId</td>
+                    <td>
+                        <img src="../Store/Image?filename=@HttpUtility.UrlEncode(item.ProductImage)" style="width: 100px; height: auto;" alt="Product Image" />
+                    </td>
                     <td>@item.ProductName</td>
                     <td>@item.Onhand</td>
                     <td>
-                        <input type="number" class="form-control qty-input" value="@item.Quantity" min="0" max="@(item.Onhand + item.Quantity)"/>
+                        <input type="number" class="form-control qty-input" value="@item.Quantity" min="0" max="@(item.Onhand + item.Quantity)" />
                     </td>
-                    <td>@item.Subtotal</td>
-                    <td>@item.Price</td>
                     <td>
                         <button class="btn btn-primary btn-update" data-product-id="@item.ProductId">Update</button>
-                        <button class="btn btn-danger btn-delete" data-product-id="@item.ProductId">Delete</button>
+                        <button class="btn btn-danger btn-delete" data-product-id="@item.ProductId">Remove</button>
                     </td>
+                    <td>@item.Price</td>
+                    <td>P @item.Subtotal</td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <div class="d-flex justify-content-end">
+        <div class="card">
+            <div class="card-body">
+                <p class="h5">Total: P @ViewBag.TOTAL</p>
+            </div>
+        </div>
+    </div>
+
     <button class="btn btn-danger btn-cancel-cart">Cancel Cart</button>
 }
 else
@@ -112,7 +124,6 @@ else
         });
     });
 </script>
-
 <style>
     .cart-details {
         margin-bottom: 20px;

@@ -26,32 +26,49 @@
         <input type="text" class="form-control" id="search" name="search" placeholder="Enter search term" value="@Request.QueryString["search"]">
     </div>
     <div class="col-auto">
-        <button type="submit" class="btn btn-primary mb-3">Search</button>
+        <label for="category" class="col-form-label">Category:</label>
+    </div>
+    <div class="col-auto">
+        <select id="category" name="category" class="form-control">
+            <option value="" @(string.IsNullOrEmpty(Request.QueryString["category"]) ? "selected" : "")>All</option>
+            <option value="FashionBeauty" @(Request.QueryString["category"] == "FashionBeauty" ? "selected" : "")>Fashion & Beauty</option>
+            <option value="Electronics" @(Request.QueryString["category"] == "Electronics" ? "selected" : "")>Electronics</option>
+            <option value="Furniture" @(Request.QueryString["category"] == "Furniture" ? "selected" : "")>Furniture</option>
+            <option value="Entertainment" @(Request.QueryString["category"] == "Entertainment" ? "selected" : "")>Entertainment</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3">Filter</button>
     </div>
 </form>
 
 @{
     string searchQuery = Request.QueryString["search"];
+    string selectedCategory = Request.QueryString["category"];
     string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\admin\source\repos\OnlineShopping\OnlineShopping\App_Data\OnlineShopping.mdf;Integrated Security=True";
+
     using (var db = new SqlConnection(connStr))
     {
         db.Open();
         using (var cmd = db.CreateCommand())
         {
             cmd.CommandType = CommandType.Text;
+            var query = "SELECT * FROM PRODUCT WHERE 1=1";
+
             if (!string.IsNullOrEmpty(searchQuery))
             {
-                cmd.CommandText = @"SELECT * FROM PRODUCT
-                            WHERE CAST(ID AS NVARCHAR) LIKE @search OR
-                                  NAME LIKE @search OR
-                                  DESCRIPTION LIKE @search OR
-                                  CATEGORY LIKE @search";
+                query += " AND (CAST(ID AS NVARCHAR) LIKE @search OR NAME LIKE @search OR DESCRIPTION LIKE @search OR CATEGORY LIKE @search)";
                 cmd.Parameters.AddWithValue("@search", "%" + searchQuery + "%");
             }
-            else
+
+            if (!string.IsNullOrEmpty(selectedCategory))
             {
-                cmd.CommandText = "SELECT * FROM PRODUCT";
+                query += " AND CATEGORY = @category";
+                cmd.Parameters.AddWithValue("@category", selectedCategory);
             }
+
+            cmd.CommandText = query;
+
             using (var reader = cmd.ExecuteReader())
             {
                 if (reader.HasRows)
@@ -95,12 +112,13 @@
                 }
                 else
                 {
-                    <p class="text-warning">There are no products in the list</p>
+                    <p class="text-warning">There are no products</p>
                 }
             }
         }
     }
 }
+
 @Html.ActionLink("Add Product", "ProductEntryForm", null, new { @class = "btn btn-success add-product-btn" })
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
