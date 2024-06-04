@@ -91,7 +91,7 @@ $(document).ready(function () {
             if (response[0].mess == 0) {
                 window.location.href = '/Home/ListAllCustomers';
             } else {
-                console.log("Failed to update customer");
+                alert(response[0].error);
             }
         });
     });
@@ -119,7 +119,7 @@ $(document).ready(function () {
                     console.log("Data is successfully removed.");
                     window.location.href = '/Home/ListAllCustomers';
                 } else {
-                    console.log("Failed to delete customer");
+                    alert(data[0].error);
                 }
             });
         }

@@ -292,18 +292,23 @@ namespace OnlineShopping.Controllers
                 string filepath = Path.Combine(logpath, imag);
                 img.SaveAs(filepath);
 
-                var pname = collection["pname"];
-                var price = 0f;
-                if (!float.TryParse(collection["price"], out price))
+                var pname = collection["pName"].Trim();
+                if (string.IsNullOrWhiteSpace(pname))
                 {
-                    throw new Exception("Invalid price format.");
+                    throw new Exception("Product Name cannot be empty or spaces only.");
+                }
+
+                var price = 0f;
+                if (!float.TryParse(collection["price"], out price) || price <= 0)
+                {
+                    throw new Exception("Invalid price format or negative value.");
                 }
 
                 var description = collection["description"];
                 var quantity = 0;
-                if (!int.TryParse(collection["quantity"], out quantity))
+                if (!int.TryParse(collection["quantity"], out quantity) || quantity < 0)
                 {
-                    throw new Exception("Invalid quantity format.");
+                    throw new Exception("Invalid quantity format or non-positive value.");
                 }
 
                 var category = collection["category"];
@@ -330,8 +335,11 @@ namespace OnlineShopping.Controllers
                         }
                     }
                 }
-                }catch (Exception ex){
-                    Response.Write($"<script>alert('Invalid input');</script>");
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = ex.Message.Replace("'", "\\'");
+                Response.Write($"<script>alert('Invalid input: {errorMessage}');</script>");
             }
             return View("ListAllProducts");
         }
@@ -340,6 +348,7 @@ namespace OnlineShopping.Controllers
         {
             return View();
         }
+
 
         public ActionResult EditCustomer(int id)
         {
@@ -371,17 +380,36 @@ namespace OnlineShopping.Controllers
             return View();
         }
 
-
         public ActionResult CustomerAddEntry()
         {
             var data = new List<object>();
-            var lname = Request["lname"];
-            var fname = Request["fname"];
+            var lname = Request["lname"]?.Trim();
+            var fname = Request["fname"]?.Trim();
             var email = Request["email"];
             var pass = Request["pass"];
             var username = Request["username"];
             var dob = Request["dob"];
             var gender = Request["gender"];
+
+            if (string.IsNullOrWhiteSpace(lname))
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Last Name cannot be empty or spaces only."
+                });
+                return Json(data, JsonRequestBehavior.AllowGet); 
+            }
+
+            if (string.IsNullOrWhiteSpace(fname))
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "First Name cannot be empty or spaces only."
+                });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
 
             if (username.ToLower() == "admin")
             {
@@ -390,15 +418,19 @@ namespace OnlineShopping.Controllers
                     success = 0,
                     errorMessage = "Username is invalid."
                 });
+                return Json(data, JsonRequestBehavior.AllowGet);
             }
+
             if (pass.Length < 6)
             {
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "Password should at least be 6 characters long"
+                    errorMessage = "Password should at least be 6 characters long."
                 });
+                return Json(data, JsonRequestBehavior.AllowGet);
             }
+
             var passwordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$");
             if (!passwordRegex.IsMatch(pass))
             {
@@ -407,65 +439,66 @@ namespace OnlineShopping.Controllers
                     success = 0,
                     errorMessage = "Password must contain at least one lowercase letter, one uppercase letter, one number, and be at least six characters long."
                 });
+                return Json(data, JsonRequestBehavior.AllowGet);
             }
-            if (IsUsernameUnique(username))
-            {
-                if (IsEmailUnique(email))
-                {
-                    using (var db = new SqlConnection(connStr))
-                    {
-                        db.Open();
-                        using (var cmd = db.CreateCommand())
-                        {
-                            cmd.CommandType = CommandType.Text;
-                            cmd.CommandText = "INSERT INTO customer(lname, fname, email, password, username, date_of_birth, gender)"
-                                + "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";//yoursqlcommand
-                            cmd.Parameters.AddWithValue("@cus_fname", fname);
-                            cmd.Parameters.AddWithValue("@cus_lname", lname);
-                            cmd.Parameters.AddWithValue("@cus_email", email);
-                            cmd.Parameters.AddWithValue("@cus_pass", pass);
-                            cmd.Parameters.AddWithValue("@cus_username", username);
-                            cmd.Parameters.AddWithValue("@cus_dob", dob);
-                            cmd.Parameters.AddWithValue("@cus_gender", gender);
 
-                            var ctr = cmd.ExecuteNonQuery();
-                            if (ctr >= 1)
-                            {
-                                data.Add(new
-                                {
-                                    success = 1
-                                });
-                            }
-                            else
-                            {
-                                data.Add(new
-                                {
-                                    success = 0
-                                });
-                            }
-                        }
-                    }
-                }
-                else
+            if (!IsUsernameUnique(username))
+            {
+                data.Add(new
                 {
-                    data.Add(new
-                    {
-                        success = 0,
-                        errorMessage = "Email is already taken."
-                    });
-                }
-                }
-                else
-                {
-                    data.Add(new
-                    {
                     success = 0,
                     errorMessage = "Username is already taken. Please choose a different username."
                 });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            if (!IsEmailUnique(email))
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Email is already taken."
+                });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            using (var db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (var cmd = db.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = "INSERT INTO customer(lname, fname, email, password, username, date_of_birth, gender)"
+                                    + "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";
+                    cmd.Parameters.AddWithValue("@cus_fname", fname);
+                    cmd.Parameters.AddWithValue("@cus_lname", lname);
+                    cmd.Parameters.AddWithValue("@cus_email", email);
+                    cmd.Parameters.AddWithValue("@cus_pass", pass);
+                    cmd.Parameters.AddWithValue("@cus_username", username);
+                    cmd.Parameters.AddWithValue("@cus_dob", dob);
+                    cmd.Parameters.AddWithValue("@cus_gender", gender);
+
+                    var ctr = cmd.ExecuteNonQuery();
+                    if (ctr >= 1)
+                    {
+                        data.Add(new
+                        {
+                            success = 1
+                        });
+                    }
+                    else
+                    {
+                        data.Add(new
+                        {
+                            success = 0
+                        });
+                    }
+                }
             }
 
             return Json(data, JsonRequestBehavior.AllowGet);
         }
+
 
         private bool IsUsernameUnique(string username)
         {
@@ -575,54 +608,131 @@ namespace OnlineShopping.Controllers
             }
             return Json(data, JsonRequestBehavior.AllowGet);
         }
-
         public ActionResult CustomerUpdateEdit()
         {
             var data = new List<object>();
             var idno = Request["id"];
-            var lname = Request["lname"];
-            var fname = Request["fname"];
-            var email = Request["email"];
+            var lname = Request["lname"]?.Trim();
+            var fname = Request["fname"]?.Trim();
+            var email = Request["email"]?.Trim();
             var pass = Request["pass"];
-            var uname = Request["uname"];
+            var uname = Request["uname"]?.Trim();
             var dob = Request["dob"];
             var gender = Request["gender"];
 
-            using (var db = new SqlConnection(connStr))
+            if (string.IsNullOrWhiteSpace(lname))
             {
-                db.Open();
-                using (var cmd = db.CreateCommand())
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.CommandText = "UPDATE CUSTOMER SET "
-                                    + " FNAME = @fname, "
-                                    + " LNAME = @lname, "
-                                    + " EMAIL = @email, "
-                                    + " PASSWORD = @pass, "
-                                    + " USERNAME = @uname, "
-                                    + " DATE_OF_BIRTH = @dob, "
-                                    + " GENDER = @gender "
-                                    + " WHERE ID='" + idno + "'";
-                    cmd.Parameters.AddWithValue("@fname", fname);
-                    cmd.Parameters.AddWithValue("@lname", lname);
-                    cmd.Parameters.AddWithValue("@email", email);
-                    cmd.Parameters.AddWithValue("@pass", pass);
-                    cmd.Parameters.AddWithValue("@uname", uname);
-                    cmd.Parameters.AddWithValue("@dob", dob);
-                    cmd.Parameters.AddWithValue("@gender", gender);
-                    var ctr = cmd.ExecuteNonQuery();
-                    if (ctr > 0)
-                    {
-                        data.Add(new
-                        {
-                            mess = 0
+                data.Add(new { mess = 1, error = "Last name cannot be empty or spaces only." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
 
-                        });
+            if (string.IsNullOrWhiteSpace(fname))
+            {
+                data.Add(new { mess = 1, error = "First name cannot be empty or spaces only." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
+            {
+                data.Add(new { mess = 1, error = "Invalid email address." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            if (pass.Length < 6)
+            {
+                data.Add(new { mess = 1, error = "Password should be at least 6 characters long." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            var passwordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$");
+            if (!passwordRegex.IsMatch(pass))
+            {
+                data.Add(new { mess = 1, error = "Password must contain at least one lowercase letter, one uppercase letter, one number, and be at least six characters long." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            if (string.IsNullOrWhiteSpace(uname))
+            {
+                data.Add(new { mess = 1, error = "Username cannot be empty or spaces only." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            if (!IsValidDate(dob))
+            {
+                data.Add(new { mess = 1, error = "Invalid date of birth." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            if (string.IsNullOrWhiteSpace(gender) || (gender != "M" && gender != "F" && gender != "O"))
+            {
+                data.Add(new { mess = 1, error = "Invalid gender value." });
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                using (var db = new SqlConnection(connStr))
+                {
+                    db.Open();
+                    using (var cmd = db.CreateCommand())
+                    {
+                        cmd.CommandType = CommandType.Text;
+                        cmd.CommandText = "UPDATE CUSTOMER SET "
+                                        + "FNAME = @fname, "
+                                        + "LNAME = @lname, "
+                                        + "EMAIL = @email, "
+                                        + "PASSWORD = @pass, "
+                                        + "USERNAME = @uname, "
+                                        + "DATE_OF_BIRTH = @dob, "
+                                        + "GENDER = @gender "
+                                        + "WHERE ID = @idno";
+                        cmd.Parameters.AddWithValue("@idno", idno);
+                        cmd.Parameters.AddWithValue("@fname", fname);
+                        cmd.Parameters.AddWithValue("@lname", lname);
+                        cmd.Parameters.AddWithValue("@email", email);
+                        cmd.Parameters.AddWithValue("@pass", pass);
+                        cmd.Parameters.AddWithValue("@uname", uname);
+                        cmd.Parameters.AddWithValue("@dob", dob);
+                        cmd.Parameters.AddWithValue("@gender", gender);
+
+                        var ctr = cmd.ExecuteNonQuery();
+                        if (ctr > 0)
+                        {
+                            data.Add(new { mess = 0 });
+                        }
+                        else
+                        {
+                            data.Add(new { mess = 1, error = "Update failed." });
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                data.Add(new { mess = 1, error = ex.Message });
+            }
+
             return Json(data, JsonRequestBehavior.AllowGet);
         }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool IsValidDate(string dateStr)
+        {
+            return DateTime.TryParse(dateStr, out _);
+        }
+
 
         ///////////////delete
         public ActionResult CustomerDelete()
@@ -825,20 +935,42 @@ namespace OnlineShopping.Controllers
 
             return View();
         }
-
-
         [HttpPost]
         public ActionResult ProductUpdateEdit(FormCollection collection, HttpPostedFileBase image)
         {
-            var data = new List<object>(); 
+            var data = new List<object>();
             try
             {
                 var idno = collection["idno"];
-                var name = collection["name"];
-                var desc = collection["desc"];
+                var name = collection["name"]?.Trim();
+                var desc = collection["desc"]?.Trim();
                 var category = collection["category"];
                 var priceStr = collection["price"];
                 var qtyStr = collection["qty"];
+
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    data.Add(new { mess = 1, error = "Name cannot be empty or spaces only." });
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+
+                if (string.IsNullOrWhiteSpace(desc))
+                {
+                    data.Add(new { mess = 1, error = "Description cannot be empty or spaces only." });
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+
+                if (!float.TryParse(priceStr, out float price) || price < 0)
+                {
+                    data.Add(new { mess = 1, error = "Invalid price format or negative value." });
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
+
+                if (!int.TryParse(qtyStr, out int qty) || qty <= 0)
+                {
+                    data.Add(new { mess = 1, error = "Invalid quantity format or non-positive value." });
+                    return Json(data, JsonRequestBehavior.AllowGet);
+                }
 
                 string imageFileName = null;
                 if (image != null && image.ContentLength > 0)
@@ -849,28 +981,20 @@ namespace OnlineShopping.Controllers
 
                     if (!IsImageFile(extension))
                     {
-                        throw new Exception("Invalid file type. Only images (jpg, jpeg, png, gif, bmp) are allowed.");
+                        data.Add(new { mess = 1, error = "Invalid file type. Only images (jpg, jpeg, png, gif, bmp) are allowed." });
+                        return Json(data, JsonRequestBehavior.AllowGet);
                     }
 
                     const int maxSize = 25 * 1024 * 1024;
                     if (filesize > maxSize)
                     {
-                        throw new Exception("File size exceeds the maximum allowed limit (25MB).");
+                        data.Add(new { mess = 1, error = "File size exceeds the maximum allowed limit (25MB)." });
+                        return Json(data, JsonRequestBehavior.AllowGet);
                     }
 
                     string logpath = "c:\\Uploads";
                     string filepath = Path.Combine(logpath, imageFileName);
                     image.SaveAs(filepath);
-                }
-
-                if (!float.TryParse(priceStr, out float price) || price < 0)
-                {
-                    throw new Exception("Invalid price format or negative value.");
-                }
-
-                if (!int.TryParse(qtyStr, out int qty) || qty < 0)
-                {
-                    throw new Exception("Invalid quantity format or negative value.");
                 }
 
                 using (var db = new SqlConnection(connStr))
@@ -912,10 +1036,11 @@ namespace OnlineShopping.Controllers
             }
             catch (Exception ex)
             {
-                data.Add(new { mess = 1, error = ex.Message});
+                data.Add(new { mess = 1, error = ex.Message });
             }
             return Json(data, JsonRequestBehavior.AllowGet);
         }
+
 
         ///////////////product delete
         public ActionResult ProductDelete()

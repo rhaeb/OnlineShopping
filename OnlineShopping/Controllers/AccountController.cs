@@ -17,7 +17,7 @@ namespace OnlineShopping.Controllers
 
         private static readonly Dictionary<string, string> Users = new Dictionary<string, string>
         {
-            { "admin", "password123" },
+            { "admin", "Password123" },
         };
 
         public ActionResult Login()
@@ -82,7 +82,6 @@ namespace OnlineShopping.Controllers
             return View();
         }
 
-
         public ActionResult SignUpForm()
         {
             var data = new List<object>();
@@ -94,85 +93,116 @@ namespace OnlineShopping.Controllers
             var dob = Request["dob"];
             var gender = Request["gender"];
 
-            if (username.ToLower() == "admin"){
+            if (string.IsNullOrWhiteSpace(lname) || string.IsNullOrWhiteSpace(fname) || string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(pass) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(dob) ||
+                string.IsNullOrWhiteSpace(gender))
+            {
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "Username is invalid."
+                    errorMessage = "All fields are required."
                 });
-            } 
-            if (pass.Length < 6 ){
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            if (username.ToLower() == "admin")
+            {
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "Password should at least be 6 characters long"
+                    errorMessage = "Username 'admin' is invalid."
                 });
             }
+
+            if (pass.Length < 6)
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Password should be at least 6 characters long."
+                });
+            }
+
             var passwordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$");
             if (!passwordRegex.IsMatch(pass))
             {
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "Password must contain at least one lowercase letter, one uppercase letter, one number, and be at least six characters long."
+                    errorMessage = "Password must contain at least one lowercase letter, one uppercase letter, and one number."
                 });
             }
 
-
-            if (IsUsernameUnique(username))
+            var emailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+            if (!emailRegex.IsMatch(email))
             {
-                if (IsEmailUnique(email))
+                data.Add(new
                 {
-                    using (var db = new SqlConnection(connStr))
-                    {
-                        db.Open();
-                        using (var cmd = db.CreateCommand())
-                        {
-                            cmd.CommandType = CommandType.Text;
-                            cmd.CommandText = "INSERT INTO customer(lname, fname, email, password, username, date_of_birth, gender) " +
-                                              "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";
-                            cmd.Parameters.AddWithValue("@cus_fname", fname);
-                            cmd.Parameters.AddWithValue("@cus_lname", lname);
-                            cmd.Parameters.AddWithValue("@cus_email", email);
-                            cmd.Parameters.AddWithValue("@cus_pass", pass);
-                            cmd.Parameters.AddWithValue("@cus_username", username);
-                            cmd.Parameters.AddWithValue("@cus_dob", dob);
-                            cmd.Parameters.AddWithValue("@cus_gender", gender);
-
-                            var ctr = cmd.ExecuteNonQuery();
-                            if (ctr >= 1)
-                            {
-                                data.Add(new
-                                {
-                                    success = 1
-                                });
-                            }
-                            else
-                            {
-                                data.Add(new
-                                {
-                                    success = 0
-                                });
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    data.Add(new
-                    {
-                        success = 0,
-                        errorMessage = "Email is already taken."
-                    });
-                }
+                    success = 0,
+                    errorMessage = "Invalid email format."
+                });
             }
-            else
+
+            if (data.Count > 0)
+            {
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+            if (!IsUsernameUnique(username))
             {
                 data.Add(new
                 {
                     success = 0,
                     errorMessage = "Username is already taken. Please choose a different username."
                 });
+            }
+
+            if (!IsEmailUnique(email))
+            {
+                data.Add(new
+                {
+                    success = 0,
+                    errorMessage = "Email is already taken."
+                });
+            }
+
+            if (data.Count > 0)
+            {
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
+
+            using (var db = new SqlConnection(connStr))
+            {
+                db.Open();
+                using (var cmd = db.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = "INSERT INTO customer (lname, fname, email, password, username, date_of_birth, gender) " +
+                                      "VALUES (@cus_lname, @cus_fname, @cus_email, @cus_pass, @cus_username, @cus_dob, @cus_gender)";
+                    cmd.Parameters.AddWithValue("@cus_fname", fname);
+                    cmd.Parameters.AddWithValue("@cus_lname", lname);
+                    cmd.Parameters.AddWithValue("@cus_email", email);
+                    cmd.Parameters.AddWithValue("@cus_pass", pass);
+                    cmd.Parameters.AddWithValue("@cus_username", username);
+                    cmd.Parameters.AddWithValue("@cus_dob", dob);
+                    cmd.Parameters.AddWithValue("@cus_gender", gender);
+
+                    var ctr = cmd.ExecuteNonQuery();
+                    if (ctr >= 1)
+                    {
+                        data.Add(new
+                        {
+                            success = 1
+                        });
+                    }
+                    else
+                    {
+                        data.Add(new
+                        {
+                            success = 0,
+                            errorMessage = "An error occurred while creating your account. Please try again."
+                        });
+                    }
+                }
             }
 
             return Json(data, JsonRequestBehavior.AllowGet);

@@ -77,7 +77,7 @@ namespace OnlineShopping.Controllers
                         cartId = Convert.ToInt32(cmd.ExecuteScalar());
 
                         Session["CartId"] = cartId;
-                        Session["CartExpiration"] = DateTime.Now.AddMinutes(30);
+                        Session["CartExpiration"] = DateTime.Now.AddMinutes(60);
                     }
 
                     ViewBag.Message = "Cart is empty";
@@ -86,7 +86,7 @@ namespace OnlineShopping.Controllers
                 }
 
                 Session["CartId"] = cartId;
-                Session["CartExpiration"] = DateTime.Now.AddMinutes(30);
+                Session["CartExpiration"] = DateTime.Now.AddMinutes(60);
 
                 using (SqlCommand cmd = new SqlCommand(@"
                 SELECT ci.PRODUCT_ID, ci.QUANTITY AS CI_QUANTITY, ci.SUBTOTAL, 
@@ -401,7 +401,7 @@ namespace OnlineShopping.Controllers
                 data.Add(new
                 {
                     success = 0,
-                    errorMessage = "An error occurred while updating the product in the cart: " + ex.Message
+                    errorMessage = ex.Message
                 });
                 return Json(data, JsonRequestBehavior.AllowGet);
             }

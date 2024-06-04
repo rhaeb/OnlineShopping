@@ -1,8 +1,6 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "CustomerEntryForm";
 }
-
 
 <div class="div-container">
     <h2>Register</h2>
@@ -11,11 +9,11 @@
         <div class="row">
             <div class="col-md-5">
                 Last Name <br />
-                <input type="text" id="lname" required class="form-control">
+                <input type="text" id="lname" required class="form-control" oninput="validateNotEmpty(this)">
             </div>
             <div class="col-md-5">
                 First Name <br />
-                <input type="text" id="fname" required class="form-control">
+                <input type="text" id="fname" required class="form-control" oninput="validateNotEmpty(this)">
             </div>
         </div>
         <br />
@@ -60,4 +58,60 @@
 </div>
 
 <script src="~/Scripts/LatestJquery/jquery-3.7.1.min.js"></script>
-<script src="~/Scripts/MyScripts/CustomerEntry.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#btnclick").click(function () {
+            var lname = $("#lname").val().trim();
+            var fname = $("#fname").val().trim();
+            var email = $("#email").val();
+            var pass = $("#pass").val();
+            var username = $("#username").val();
+            var dob = $("#dob").val();
+            var gender = $("#gender").val();
+
+            if (!lname) {
+                alert("Last Name cannot be empty or spaces only.");
+                return;
+            }
+            if (!fname) {
+                alert("First Name cannot be empty or spaces only.");
+                return;
+            }
+            if (gender.length != 1) {
+                alert("Please enter only one letter for gender.")
+            } else {
+                $.post('../Home/CustomerAddEntry', {
+                    fname: fname,
+                    lname: lname,
+                    email: email,
+                    pass: pass,
+                    username: username,
+                    dob: dob,
+                    gender: gender,
+                }, function (data) {
+                    if (data[0].success == 1) {
+                        console.log("Successfully saved!");
+                        $("#lname").val("");
+                        $("#fname").val("");
+                        $("#email").val("");
+                        $("#pass").val("");
+                        $("#username").val("");
+                        $("#dob").val("");
+                        $("#gender").val("");
+                    } else {
+                        console.log("Something missing!");
+                    }
+                });
+            }
+        });
+    });
+
+    function validateNotEmpty(input) {
+        let value = input.value.trim();
+        if (value === '') {
+            input.setCustomValidity('This field cannot be empty or spaces only.');
+        } else {
+            input.setCustomValidity('');
+        }
+    }
+</script>

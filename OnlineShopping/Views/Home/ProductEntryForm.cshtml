@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "ProductEntryForm";
 }
 
@@ -8,7 +7,7 @@
     <form id="productForm" method="post" action="../Home/ProductEntry" enctype="multipart/form-data">
         <div>
             Product Name <br />
-            <input type="text" id="pName" name="pName" required class="form-control">
+            <input type="text" id="pName" name="pName" required class="form-control" oninput="validateNotEmpty(this)">
             <br />
             Price <br />
             <input type="number" id="price" name="price" step="0.01" min="0" required class="form-control">
@@ -43,5 +42,31 @@
         $("#btnBack").click(function () {
             window.location.href = '/Home/ListAllProducts';
         });
+
+        $('#productForm').on('submit', function (e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                alert('Please fill out all required fields correctly.');
+            }
+        });
     });
+
+    function validateForm() {
+        let isValid = true;
+        let pName = $('#pName').val().trim();
+        if (pName === '') {
+            isValid = false;
+            alert('Product Name cannot be empty or spaces only.');
+        }
+        return isValid;
+    }
+
+    function validateNotEmpty(input) {
+        let value = input.value.trim();
+        if (value === '') {
+            input.setCustomValidity('This field cannot be empty or spaces only.');
+        } else {
+            input.setCustomValidity('');
+        }
+    }
 </script>
